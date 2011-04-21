@@ -142,6 +142,8 @@ git read-tree --prefix=drupal-6.x/sites/all/modules/feedback  d3fcc8abb75e9223e1
 git commit -m "Merge of feedback"
 git reset --hard
 
+#finished to here I think...
+
 git remote add -f drupal.org/file_aliases http://git.drupal.org/project/file_aliases.git
 git merge -s ours --no-commit 1c0d56d3627f5a562ca3d77a6ea1a963f44580b6
 git read-tree --prefix=drupal-6.x/sites/all/modules/file_aliases  1c0d56d3627f5a562ca3d77a6ea1a963f44580b6
