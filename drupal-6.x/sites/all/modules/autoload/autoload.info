@@ -1,0 +1,5 @@
+; $Id$
+name = Autoload
+description = Helper module to autoload classes under PHP 5.
+php = 5.1.2
+core = 6.x
