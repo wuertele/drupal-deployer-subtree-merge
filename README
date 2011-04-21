@@ -1,0 +1,21 @@
+Drupal Website Deployer Repository (subtree merge strategy)
+
+Getting to 6.19:
+
+git remote add -f drupal.org http://git.drupal.org/project/drupal.git
+git merge -s ours --no-commit 88146f6d
+git read-tree --prefix=drupal-6.x 88146f6d
+git commit -m "Merge of drupal-6.19"
+git reset --hard
+
+Getting to 7.0:
+
+git merge -s ours --no-commit 49791492
+git read-tree --prefix=drupal-7.x 49791492
+git commit -m "Merge of drupal-7.0"
+git reset --hard
+
+Advancing 6.19 to 6.20:
+
+git fetch drupal.org
+git merge -s subtree 6.20
