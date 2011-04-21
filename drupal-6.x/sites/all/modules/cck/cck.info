@@ -1,0 +1,7 @@
+name = CCK
+description = Miscellaneous field functions not handled by core.
+package = CCK
+core = 7.x
+files[] = cck.module
+files[] = cck.install
+dependencies[] = field_ui
