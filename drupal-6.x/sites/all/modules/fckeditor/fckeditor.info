@@ -1,0 +1,5 @@
+; $Id$
+name = FCKeditor
+description = "Enables the usage of FCKeditor (WYSIWYG) instead of plain text fields."
+core = 6.x
+
