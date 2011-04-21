@@ -1,0 +1,5 @@
+; $Id$
+name = Advanced help example
+description = A example help module to demonstrate the advanced help module.
+core = 6.x
+dependencies[] = advanced_help
