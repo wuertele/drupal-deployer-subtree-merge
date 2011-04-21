@@ -1,0 +1,4 @@
+; $Id$
+name = Elements
+description = Provides a library of Form API elements.
+core = 6.x
