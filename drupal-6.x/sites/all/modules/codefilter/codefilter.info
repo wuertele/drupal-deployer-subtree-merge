@@ -1,0 +1,4 @@
+; $Id$
+name = Code Filter
+description = Provides tags for automatically escaping and formatting large pieces of code.
+core = 6.x
