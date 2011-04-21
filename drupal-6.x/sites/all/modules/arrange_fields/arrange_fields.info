@@ -1,0 +1,5 @@
+; $Id$
+name = Arrange Fields
+description = Arrange CCK, Webform, and other form fields using drag-and-drop.
+dependencies[] = jquery_ui 
+core = 6.x
