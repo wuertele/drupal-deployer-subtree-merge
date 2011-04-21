@@ -1,0 +1,7 @@
+; $Id$
+name = CCK Fieldgroup Tabs
+description = Display CCK fieldgroups in tabs. Enables splitting up content onto tabs in both editing and display.
+dependencies[] = fieldgroup
+dependencies[] = tabs
+package = CCK
+core = 6.x
