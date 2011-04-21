@@ -1,0 +1,17 @@
+$Id$
+
+API
+* Handle update/delete cases cleanly (currently inefficient)
+
+Search
+* Paged searching
+* Advanced search options
+* Properly themed search results
+
+Theming
+* Document variables
+
+Functionality
+* Wish lists (separate module?
+* Related Books block for nodes (separate module?)
+* Reading List module (separate module?)

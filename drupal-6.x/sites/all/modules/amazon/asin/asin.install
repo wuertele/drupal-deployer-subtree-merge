@@ -1,0 +1,127 @@
+<?php
+
+// Updates happen in random order, whether or not the module is enabled,
+// so include critical code here just to be sure.
+include_once('./'. drupal_get_path('module', 'content') .'/content.module');
+
+/**
+ * Implementation of hook_install().
+ */
+function asin_install() {
+  content_notify('install', 'asin');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function asin_uninstall() {
+  content_notify('uninstall', 'asin');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function asin_enable() {
+  content_notify('enable', 'asin');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function asin_disable() {
+  content_notify('disable', 'asin');
+}
+
+
+/**
+ * Database schema update from the ugly, borked D5 version.
+ */
+function asin_update_6001() {
+  if ($abort = content_check_update('asin')) {
+    return $abort;
+  }
+
+  // The name of the widget type has changed from asin to asin_text.
+  $ret[] = update_sql("UPDATE {" . content_instance_tablename() . "} SET widget_type = 'asin_text' WHERE widget_type = 'asin'");
+  // All CCK fields are disabled by Content module during the D6 upgrade.
+  // Re-enable the 'asin' field.
+  content_associate_fields('asin');
+
+  // Build a list of fields that need data updating.
+  module_load_install('content');
+  module_load_include('inc', 'content', 'includes/content.admin');
+  module_load_include('inc', 'content', 'includes/content.crud');
+
+  $ret = array();
+  $fields = array();
+
+  content_clear_type_cache(TRUE);
+
+  // Grab the list of fields to update.
+  foreach (content_field_instance_read(NULL, TRUE) as $field) {
+    if ($field['type'] == 'asin' && $field['widget']['type'] == 'asin_text') {
+      $fields[] = $field;
+    }
+  }
+
+  content_clear_type_cache(TRUE);
+
+  // Update database storage (add data column, since the D5 version assumed all control).
+  foreach ($fields as $field) {
+    $new_field = $field;
+
+    // Setup the previous definition.
+    $field['columns'] = array();
+    // Setup the new.
+    $new_field['columns']['asin'] = array('type' => 'varchar', 'length' => 32, 'not null' => FALSE);
+    $field['widget']['type'] = 'asin_text';
+
+    content_alter_db($field, $new_field);
+    content_field_instance_update($field);
+
+    $ret[] = array('success' => TRUE, 'query' => 'Updated database schema and widget settings for ' . $field['field_name']);
+  }
+
+  content_clear_type_cache(TRUE);
+
+  return $ret;
+}
+
+/**
+ * Migrate old data from the D5 version.
+ */
+function asin_update_6002() {
+  module_load_install('content');
+  module_load_include('inc', 'content', 'includes/content.admin');
+  module_load_include('inc', 'content', 'includes/content.crud');
+
+  // Grab the list of fields to update.
+  $fields = array();
+  foreach (content_field_instance_read() as $field) {
+    if ($field['type'] == 'asin') {
+      $fields[$field['field_name']] = $field;
+    }
+  }
+
+
+  if (!empty($fields)) {
+    $batch = array(
+      'title' => t('Migrating ASIN CCK field values'),
+      'operations' => array(
+        array('_asin_migrate_field_from_d5', array($fields)),
+      ),
+      'finished' => '_asin_migrate_fields_finished',
+      'init_message' => t('Beginning ASIN migration.'),
+      'progress_message' => t('Processed @current out of @total.'),
+      'error_message' => t('ASIN CCK field update encountered an error.'),
+      'file' => drupal_get_path('module', 'asin') .'/asin.d5-migrate.inc',
+    );
+    batch_set($batch);
+  }
+
+  return array();
+}

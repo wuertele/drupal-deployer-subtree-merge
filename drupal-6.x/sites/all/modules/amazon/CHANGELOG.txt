@@ -1,0 +1,99 @@
+$Id$
+
+6.x-1.3 release
+===============
+
+[#1014128] by jdleonard, rfay: Fix invalid conditions in amazon_item_clean_xml().
+[#987962] by rfay, the_g_bomb: Views should use configured path for amazon_store
+
+6.x-1.2 release
+===============
+If you were using the Customer Reviews feature in a view or otherwise, you'll
+have a broken view, since Amazon has dropped customer review data from their API.
+Instead, there is now a data item called "Customer reviews iframe" which is a
+link to customer review information provided by Amazon suitable for placement
+in an iframe.
+
+- [#869286] by rfay: Add a configurable default image. Sponsored by fortmifflin.com - Thanks!
+- [#929748] by OV2: Expired data was being received from the database. 
+- [#905198] by the_g_bomb, rfay: Amazon no longer providing customer review data.
+
+- [#758630] by rfay: Views title should link to Amazon Store.
+- [#879830] by rfay, carpenoctum414: Amazon price does not show outside US.
+- [#801896] by rfay: Editorial content is double-escaped.
+- [#950602] by frando, rfay: Add an autocomplete widget to ASIN, at long last.
+- [#971820] by davidzz, rfay: Add BOOKS_1973_AND_LATER as a media type
+- [#959766] by dereine, rfay: Images in view were not handled correctly
+
+6.x-1.1 release
+===============
+- [#848990] by rfay: Add feeds integration for ASIN field. Sponsored by Bobastream, LLC. Thanks!
+
+6.x-1.0 release
+===============
+- [#736624] by rfay, joetan: Fix uninitialized variable warning (D6)
+
+6.x-1.x-RC4 release
+===================
+- [#671686] by rfay: Fixed Amazon module localization errors.
+- [#609448] by rfay: Added rel="nofollow" to detailpageurl links
+- [#609448] by rfay: Added Feature: Add customer reviews and ratings to Amazon information retrieved.
+- [#556414] by rfay, stratosgear: Provide Amazon.com price or lowest price or both.
+- [#697138] by robertDouglass: Added Drupal alter $params before searching in amazon_search so that modules can customize search.
+- [#288577] by rfay, reprise: Add 13-digit ISBN/EAN support to the admin test
+
+
+6.x-1.x-RC3 release
+===================
+- [#288577] by rfay, tirsales, mleicester: Added 13 digit ISBNs / EAN support / converting to ASINs.
+            With this patch, both EANs (ISBN-13) and Amazon.com/co.uk/de, etc. links can be used in
+            either a CCK field or an Amazon filter. Also, hyphens are ignored in the input, so you can
+            use a classically formatted ISBN-10 or ISBN-13.
+- [#679860] by rfay:  User with 'administer amazon' permissions can not access ./admin/settings/amazon/test.
+- [#350320] by rfay: Fix Display of &amp;amp; (and possibly other special chars) isn't handled correctly. (Again)
+- [#231612] by rfay: Fix upgrade path from D5 ASIN module. Also add upgrade path
+                     for AAT links and amazon nodes (which are the same thing)
+- [#608784] by rfay: Better filter tips in amazon_filter module.
+- [#590360] by rfay: Postgresql compatibility fix.
+
+6.x-1.x-RC2 release
+=====================
+- #661560 by rfay: PHP 5.3 compatibility fix
+- #660670 by rfay: Remove option of using author's Amazon associate ID.
+- #609388 by rfay: Make Amazon item title sortable in views, check other fields.
+- #622076 by rfay: invalid_asin filter should be a boolean filter or at least numeric.
+- #608782 by rfay: hook_update_6006() needs to use db_add_field() not db_add_column().
+- #608780 by rfay: hook_uninstall() does not uninstall all schemas and variables.
+- #392576 by rfay: Partial data retrieved but with error mysqli_real_escape_string() expects parameter 2 to be string, array is SOME products.
+- #659728 by rfay: Move active development to HEAD
+- #608624 by rfay: Test should detect and report invalid credentials. Also now detects system time problems, etc.
+- #622418 by rfay: Remove the option of not storing amazon data locally.
+
+18 October 2009: BETA-10 release
+================================
+- Minor changes to fix issues encountered during documentation and test of BETA-9
+
+18 October 2009: BETA-9 release  (Beta-8 had a problem and had to be replaced)
+===============================
+- #278034 by iva2k - Fix node-view CSS when there is more than one ASIN field
+- Add views handling for Amazon images, including linking.
+- #543990 by rfay - Fix bug where save didn't include Amazon database update
+- #353285 - Remove "NOT NULL" from database definition where Amazon might in fact not return information.
+- Added delete of amazon_item when related node is deleted.
+- #350320 - Allow HTML in title of Amazon item
+- #326963 by bangpound: Correct return values in hook_field()
+- #494648: Filtering by the contents of the ASIN field didn't work
+- #362884 by tomiyana: Change detailpageurl to TEXT because of long Japanes detailpageurls
+- amazon.module function documentation.
+- Improve consistency of data insert by always deleting item before insert.
+- #288119: Trim whitespace from ASIN in CCK field.
+- #437158: Date-related items are now supported in views as dates.
+- #510432: Make amazon_inline_item get preprocessed
+- #511008: Track and handle invalid ASINs. We now mark them as invalid_asin
+           in the amazon_item table, and some of the tpl.php files make note
+           of this. The invalid_asin is also available via views.
+- #598588: Many new filters are now available through [amazon ASIN detail].
+           Everything that is preprocessed in amazon_preprocess_amazon_item()
+           is available for use. For example, [amazon 0596515804 detailpageurl]
+- #595980: Added a demonstration module (requires features module) that provides
+           a CCK type and a view. 

@@ -1,0 +1,5 @@
+name = Amazon Filter
+description = Lets writers use the [amazon] tag to embed Amazon product information in text.
+package = "Amazon"
+dependencies[] = amazon
+core = 6.x

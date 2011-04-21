@@ -1,0 +1,5 @@
+name = Amazon API
+description = Provides integration with the Amazon Ecommerce APIs.
+package = Amazon
+core = 6.x
+php = 5.2

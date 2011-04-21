@@ -1,0 +1,51 @@
+<?php
+// $Id$
+
+
+function amazon_search_perm() {
+  return array('access amazon search');
+}
+
+/**
+ * Implementation of hook_search(). Implements remote Amazon searching.
+ */
+function amazon_search_search($op = 'search', $keys = NULL, $skip_access_check = FALSE) {
+  switch ($op) {
+    case 'name':
+      if ($skip_access_check || user_access('access amazon search')) {
+        return t('Amazon.com');
+      }
+    case 'search':
+      if (user_access('access amazon search')) {
+        $products = array();
+        $items = amazon_search_simple_search($keys);
+        foreach ($items as $item) {
+          $products[] = array(
+            'title' => check_plain($item['title']),
+            'link' => check_url($item['detailpageurl']),
+            'type' => check_plain($item['productgroup']),
+            'user' => isset($item['participants']) ? implode(', ', $item['participants']) : '',
+            'snippet' => isset($item['editorialreviews']) ? check_markup($item['editorialreviews'][0]['content']) : '',
+          );
+        }
+        return $products;
+      }
+  }
+}
+
+function amazon_search_simple_search($keywords = '', $parameters = array()) {
+  $parameters += array(
+    'ResponseGroup' => 'ItemAttributes,EditorialReview',
+    'SearchIndex' => 'Blended',
+  );
+  $parameters['Keywords'] = urlencode($keywords);
+  drupal_alter('amazon_search_parameters', $parameters);
+
+  $items = array();
+  $results = amazon_http_request('ItemSearch', $parameters);
+  foreach($results->Items->Item as $xml) {
+    $item = amazon_item_clean_xml($xml);
+    $items[$item['asin']] = $item;
+  }
+  return $items;
+}

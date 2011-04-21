@@ -1,0 +1,6 @@
+name = Amazon media
+description = Stores extended Amazon product information for books, music, DVDs, and software.
+package = Amazon
+dependencies[] = amazon
+core = 6.x
+php = 5.2

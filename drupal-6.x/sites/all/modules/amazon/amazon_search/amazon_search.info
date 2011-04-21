@@ -1,0 +1,7 @@
+name = Amazon search
+description = Provides an API for searching Amazon product information, and integration with the Drupal search system.
+package = Amazon
+dependencies[] = amazon
+dependencies[] = search
+core = 6.x
+php = 5.2

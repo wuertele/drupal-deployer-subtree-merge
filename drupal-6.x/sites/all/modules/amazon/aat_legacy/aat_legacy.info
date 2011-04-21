@@ -1,0 +1,8 @@
+; $Id$
+name = Amazon legacy importer
+description = This module is used only to import legacy Drupal 5 Amazontools data. After upgrade it should be disabled.
+package = Amazon
+dependencies[] = amazon
+dependencies[] = asin
+core = 6.x
+php = 5.2

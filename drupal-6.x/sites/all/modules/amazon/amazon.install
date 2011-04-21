@@ -1,0 +1,346 @@
+<?php
+// $Id$
+
+/**
+ * Implements hook_install.
+ */
+function amazon_install() {
+  drupal_install_schema('amazon');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function amazon_uninstall() {
+  drupal_uninstall_schema('amazon');
+  $variables = preg_split('/\s+/',
+    "amazon_media_data
+    amazon_default_image
+    amazon_default_image_large_preset
+    amazon_default_image_medium_preset
+    amazon_default_image_small_preset
+    amazon_locale
+    amazon_associate_setting
+    amazon_custom_associate_id
+    amazon_aws_access_key
+    amazon_aws_secret_access_key
+    amazon_refresh_schedule
+    amazon_core_data");
+  foreach ($variables as $var) {
+    variable_del($var);
+  }
+}
+/**
+ * implementation of hook_requirements to make sure we let them know about
+ * the requirement for amazon_aws_secret_access_key
+ * @param $phase
+ * @return unknown_type
+ */
+function amazon_requirements($phase) {
+  $secret_access_key=variable_get('amazon_aws_secret_access_key',"");
+  $api_key = variable_get('amazon_aws_access_key',"");
+  $requirement = array();
+  if (empty($secret_access_key) || empty($api_key)) {
+    drupal_set_message(t("The Amazon API must be configured with an Access Key ID and an Amazon AWS Secret Access Key to function. Go to !settings.",array("!settings"=>l(t("Amazon API Setttings"),'admin/settings/amazon'))));
+    $requirement['title'] = t("Amazon AWS Secret Access Key");
+    $requirement['severity'] = REQUIREMENT_WARNING;
+    $requirement['value'] = t("Not Set");
+    $requirement['description'] = t("The Amazon API must be configured with an Access Key ID and an Amazon AWS Secret Access Key to function. Go to !settings.",array("!settings"=>l(t("Amazon API Setttings"),'admin/settings/amazon')));
+    return array('amazon_aws_secret_access_key',$requirement);
+  }
+
+  return NULL;
+}
+
+function amazon_schema() {
+  $schema['amazon_item'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'title' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'detailpageurl' => array('type' => 'text'),
+      'salesrank' => array('type' => 'int', 'unsigned' => TRUE),
+      'brand' => array('type' => 'varchar', 'length' => 64),
+      'publisher' => array('type' => 'varchar', 'length' => 64),
+      'manufacturer' => array('type' => 'varchar', 'length' => 64),
+      'mpn' => array('type' => 'varchar', 'length' => 128),
+      'studio' => array('type' => 'varchar', 'length' => 64),
+      'label' => array('type' => 'varchar', 'length' => 64),
+      'binding' => array('type' => 'varchar', 'length' => 64),
+      'releasedate' => array('type' => 'varchar', 'length' => 64),
+      'listpriceamount' => array('type' => 'numeric'),
+      'listpricecurrencycode' => array('type' => 'varchar', 'length' => 32),
+      'listpriceformattedprice' => array('type' => 'varchar', 'length' => 32),
+      'lowestpriceamount' => array('type' => 'numeric'),
+      'lowestpricecurrencycode' => array('type' => 'varchar', 'length' => 32),
+      'lowestpriceformattedprice' => array('type' => 'varchar', 'length' => 32),
+      'amazonpriceamount' => array('type' => 'numeric'),
+      'amazonpricecurrencycode' => array('type' => 'varchar', 'length' => 32),
+      'amazonpriceformattedprice' => array('type' => 'varchar', 'length' => 32),
+      'productgroup' => array('type' => 'varchar', 'length' => 255),
+      'producttypename' => array('type' => 'varchar', 'length' => 255),
+      'customerreviews_iframe' => array('type' => 'varchar', 'length' => 255),
+      'invalid_asin' => array('type' => 'int', 'default' => 0),
+      'timestamp' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array('asin'),
+  );
+
+  $schema['amazon_item_participant'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'type' => array('type' => 'varchar', 'length' => 128, 'not null' => TRUE),
+      'participant' => array('type' => 'varchar', 'length' => 128, 'not null' => TRUE),
+    ),
+    'indexes' => array(
+      'asin' => array('asin'),
+    ),
+  );
+
+  $schema['amazon_item_image'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'size' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'url' => array('type' => 'varchar', 'length' => 128, 'not null' => TRUE),
+      'height' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'width' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    ),
+    'primary key' => array('asin', 'size'),
+    'indexes' => array(
+      'asin' => array('asin'),
+    ),
+  );
+
+  $schema['amazon_item_editorial_review'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'source' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'content' => array('type' => 'text'),
+    ),
+    'indexes' => array('asin' => array('asin')),
+  );
+
+  $schema['amazon_item_node'] = array(
+    'fields' => array(
+      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'notes' => array('type' => 'text','not null' => FALSE),
+      'module' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE, 'default' => 'amazon'),
+      'delta' => array('type' => 'int', 'default' => 0),
+    ),
+    'primary key' => array('nid', 'asin', 'module'),
+    'indexes' => array(
+      'nid' => array('nid'),
+      'vid' => array('vid'),
+      'vid_module' => array('vid', 'module'),
+      'asin' => array('asin'),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Update variables from legacy AAT module where possible. Add mpn field.
+ */
+function amazon_update_6001() {
+  $ret = array();
+  db_add_column($ret, 'amazon_item', 'mpn', 'varchar(128)');
+
+  // If the access key is not set, and there is a D5 amazontools access key, use it.
+  $d6_aws_access_key = variable_get('amazon_aws_access_key', "");
+  if (empty($d6_aws_access_key)) {
+    $old_access_key = variable_get('amazon_awsaccess_key', "");
+    if (!empty($old_access_key)) {
+      variable_set('amazon_aws_access_key', $old_access_key);
+      variable_del('amazon_awsaccess_key');
+      $ret[] = array('success' => TRUE, 'query' => 'Updated Amazon AWS Access Key from D5 AAT');
+    }
+  }
+  // Bring over the d5 associate id if possible.
+  $d6_associate_id = variable_get("amazon_custom_associate_id", "");
+  if (empty($d6_associate_id)) {
+    $associate_id = variable_get("amazon_associate_id", "");
+    if (!empty($associate_id)) {
+      variable_set('amazon_custom_associate_id', $associate_id);
+      variable_set('amazon_associate_setting', 'custom');
+      variable_del("amazon_associate_id");
+      $ret[] = array('success' => TRUE, 'query' => 'Updated Amazon Associate ID from D5 AAT');
+    }
+  }
+  if (is_numeric(variable_get('amazon_locale',"US"))) {
+    variable_del('amazon_locale');
+    drupal_set_message(t("The Amazon locale setting was invalid. Please visit the <a href='!url'>Amazon settings page</a> to correct it.", array('!url' => url('admin/settings/amazon'))));
+  }
+
+  return $ret;
+}
+
+function amazon_update_6002() {
+  $ret = array();
+  // Make sure that primary keys are correct
+  db_drop_primary_key($ret, 'amazon_item_image');
+  db_add_primary_key($ret, 'amazon_item_image', array('asin', 'size'));
+  return $ret;
+}
+
+/**
+ * http://drupal.org/node/426786 - Allow longer image url fields.
+ */
+function amazon_update_6003() {
+  $ret = array();
+  db_change_field($ret, 'amazon_item_image', 'url', 'url',
+    array('type' => 'varchar', 'length' => 128, 'not null' => TRUE));
+  return $ret;
+}
+
+/**
+ * Ugly hack for those updating from amazon module in D5.
+ */
+function amazon_update_6004() {
+  $ret = array();
+
+  if (!db_table_exists('amazon_item')) {
+    drupal_install_schema('amazon');
+    $ret[] = array('success' => TRUE, 'query' => 'Force-installed Amazon module tables after botched D5 upgrade.');
+  }
+
+  return $ret;
+}
+
+function amazon_update_6005() {
+  $ret = array();
+  db_change_field($ret, 'amazon_item', 'detailpageurl', 'detailpageurl',
+    array('type' => 'text'));
+  db_change_field($ret, 'amazon_item', 'brand', 'brand',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'publisher', 'publisher',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'manufacturer', 'manufacturer',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'studio', 'studio',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'label', 'label',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'binding', 'binding',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'releasedate', 'releasedate',
+    array('type' => 'varchar', 'length' => 64));
+  db_change_field($ret, 'amazon_item', 'productgroup', 'productgroup',
+    array('type' => 'varchar', 'length' => 255));
+  db_change_field($ret, 'amazon_item', 'producttypename', 'producttypename',
+    array('type' => 'varchar', 'length' => 255));
+
+  return $ret;
+}
+
+function amazon_update_6006() {
+  $ret = array();
+  db_add_field($ret, 'amazon_item', 'invalid_asin', array('type' => 'int', 'default' => 0));
+  return $ret;
+}
+
+function amazon_update_6007() {
+  $ret = array();
+  if (variable_get('amazon_associate_setting', 'associate') == 'author') {
+    variable_del('amazon_associate_setting');  // go with the default.
+    $ret[] = array('success' => TRUE, 'query' => t('Replaced "author" Amazon associate setting with the default.'));
+  }
+  return $ret;
+}
+
+/**
+ * Change listpriceamount field to numeric. It's not floating anyway.
+ */
+function amazon_update_6008() {
+  $ret = array();
+  db_change_field($ret, 'amazon_item', 'listpriceamount', 'listpriceamount',
+    array('type' => 'numeric'));
+  return $ret;
+}
+
+/**
+ * Change key on amazon_item_node (again).
+ *
+ * It looks like nid should be the correct portion of the key, since there
+ * is no vid coming in. In fact... There should be no vid.
+ *
+ */
+function amazon_update_6009() {
+  $ret = array();
+  db_drop_primary_key($ret, 'amazon_item_node');
+  db_add_primary_key($ret, 'amazon_item_node', array('nid', 'asin', 'module'));
+  return $ret;
+}
+
+
+/**
+ * Change key on editorial reviews, since it shouldn't be primary.
+ */
+function amazon_update_6010() {
+  $ret = array();
+  db_drop_primary_key($ret, 'amazon_item_editorial_review');
+  db_add_index($ret, 'amazon_item_editorial_review', 'amazon_item_editorial_review', array('asin'));
+  return $ret;
+}
+
+/**
+ * Add Customer Reviews table so we can handle that.
+ * @return unknown_type
+ */
+function amazon_update_6011() {
+  $schema = amazon_schema();
+  if (!db_table_exists('amazon_item_customer_review')) {
+    db_create_table($ret, 'amazon_item_customer_review', $schema['amazon_item_customer_review']);
+  }
+  return $ret;
+}
+
+/**
+ * Add new elements to the amazon_item table: Lowest price, etc.
+ * @return unknown_type
+ */
+function amazon_update_6012() {
+  db_add_field($ret, 'amazon_item', 'lowestpriceamount', array('type' => 'numeric'));
+  db_add_field($ret, 'amazon_item', 'lowestpricecurrencycode', array('type' => 'numeric'));
+  db_add_field($ret, 'amazon_item', 'lowestpriceformattedprice', array('type' => 'varchar', 'length' => 32));
+  db_add_field($ret, 'amazon_item', 'amazonpriceamount', array('type' => 'numeric'));
+  db_add_field($ret, 'amazon_item', 'amazonpricecurrencycode', array('type' => 'numeric'));
+  db_add_field($ret, 'amazon_item', 'amazonpriceformattedprice', array('type' => 'varchar', 'length' => 32));
+  return $ret;
+}
+
+/**
+ * Fix messed up type for currency code in 6012.
+ * @return unknown_type
+ */
+function amazon_update_6013() {
+  db_change_field($ret, 'amazon_item', 'lowestpricecurrencycode', 'lowestpricecurrencycode',
+  array('type' => 'varchar', 'length' => 32));
+  db_change_field($ret, 'amazon_item', 'amazonpricecurrencycode', 'amazonpricecurrencycode',
+  array('type' => 'varchar', 'length' => 32));
+  return $ret;
+}
+
+/**
+ * Implementation of a default image requires that all the images be updated.
+ * Here we'll just set the timestamp to 0 and then let cron finish the job.
+ */
+function amazon_update_6014() {
+  // Force all data to be updated from Amazon so that images can be properly updated.
+  $ret[] = update_sql('UPDATE {amazon_item} SET timestamp = 0;');
+  drupal_set_message(t('If you have enabled a default image, you may need to wait for a few cron runs (or run cron a few times) before all images are properly set up.'));
+  return $ret;
+}
+
+/**
+ * Amazon has stopped providing customer review data; now we only get an
+ * iframe link where Amazon will provide the data, so we need to drop the table
+ * that was used for customer reviews and add the new iframe link.
+ */
+function amazon_update_6015() {
+  db_add_field($ret, 'amazon_item', 'customerreviews_iframe', array('type' => 'varchar', 'length' => 255));
+  db_drop_table($ret, 'amazon_item_customer_review');
+  $ret[] = update_sql('UPDATE {amazon_item} SET timestamp = 0;');
+  return $ret;
+}

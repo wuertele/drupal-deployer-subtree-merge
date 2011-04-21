@@ -1,0 +1,169 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_menu.
+ */
+function aat_legacy_menu() {
+  $items['admin/settings/aat_legacy'] = array(
+    'title' => "Amazontools Legacy Import",
+    'page callback' => 'drupal_get_form',
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('aat_legacy_import_form')
+  );
+  return $items;
+}
+
+/**
+ * Form to start the import process.
+ */
+function aat_legacy_import_form() {
+  $form = array();
+  $form['explanation'] = array(
+    '#type' => 'markup',
+    '#prefix' => "<div>",
+    '#value' => t("Here you can import legacy Drupal 5 items from Amazon Tools. This may take a long time. It may be safely restarted."),
+    '#suffix' => "</div>",
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t("Start import"),
+  );
+  return $form;
+}
+
+function aat_legacy_import_form_submit($form_state, &$form_value) {
+  aat_legacy_import_data();
+}
+
+
+/**
+ * Create a CCK field for each node type that had Amazon link in D5.
+ * Then populate it.
+ */
+function aat_legacy_import_data() {
+  $ret = array();
+  $result = db_query("SELECT DISTINCT type FROM node_type nt, amazonnode an where nt.type = an.ntype");
+  // Build a list of fields that need data updating.
+  module_load_install('content');
+  module_load_include('inc', 'content', 'includes/content.admin');
+  module_load_include('inc', 'content', 'includes/content.crud');
+
+  $field = aat_legacy_legacy_field_description();
+
+  // First attach the new field to the content type.
+  $types = array();
+  while ($type_ary = db_fetch_array($result)) {
+    $ntype = $type_ary['type'];
+    $types[] = $ntype;
+    $instance = content_field_instance_read(array('type_name' => $ntype, 'field_name' => 'field_legacy_asin'));
+    if (empty($instance)) {
+      drupal_set_message(t("Adding field_legacy_asin to node type %ntype", array('%ntype' => $ntype)));
+      $field['type_name'] = $ntype;
+      content_field_instance_create($field);
+    }
+    else {
+      drupal_set_message(t("field_legacy_asin already exists in node type %ntype; not creating it.", array('%ntype' => $ntype)));
+    }
+  }
+
+  // Now batch-import the data from those items.
+  if (!empty($types)) {
+    $operations = array();
+    $sql = "SELECT DISTINCT(nid) nid, ntype  FROM {amazonnode} WHERE ntype IN (" . db_placeholders($types, 'varchar') . ") ORDER BY nid ASC";
+    $result = db_query($sql, $types);
+    while ($item = db_fetch_object($result)) {
+      $operations[] = array('_aat_legacy_migrate_field_from_d5', array(array('nid' => $item->nid, 'ntype' => $item->ntype)));
+    }
+    $batch = array(
+      'title' => t('Migrating amazonnode field values into field_legacy_asin CCK fields'),
+      'operations' => $operations,
+      'finished' => '_aat_legacy_migrate_fields_finished',
+      'init_message' => t('Beginning migration of legacy_asin fields.'),
+      'progress_message' => t('Processed @current out of @total.'),
+      'error_message' => t('AAT Legacy field update encountered an error.'),
+      'file' => drupal_get_path('module', 'aat_legacy') .'/aat_legacy.d5-migrate.inc',
+    );
+    batch_set($batch);
+  }
+  if (empty($operations)) {
+    drupal_set_message(t("You have no items remaining to import. You may now disable the Amazon Legacy Importer module (aat_legacy)."));
+  }
+
+}
+
+/**
+ * Just returns field description for field_legacy_asin.
+ */
+function aat_legacy_legacy_field_description() {
+  return   array (
+    'label' => 'Legacy ASIN',
+    'field_name' => 'field_legacy_asin',
+    'type' => 'asin',
+    'widget_type' => 'asin_text',
+    'change' => 'Change basic information',
+    'weight' => '31',
+    'description' => '',
+    'default_value' =>
+  array (
+  0 =>
+  array (
+        'asin' => '',
+  ),
+  ),
+    'default_value_php' => '',
+    'default_value_widget' => NULL,
+    'required' => 0,
+    'multiple' => '1',
+    'op' => 'Save field settings',
+    'module' => 'asin',
+    'widget_module' => 'asin',
+    'columns' =>
+  array (
+      'asin' =>
+  array (
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => false,
+  ),
+  ),
+    'display_settings' =>
+  array (
+      'label' =>
+  array (
+        'format' => 'above',
+        'exclude' => 0,
+  ),
+  5 =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+      'teaser' =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+      'full' =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+  4 =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+  2 =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+  3 =>
+  array (
+        'format' => 'default',
+        'exclude' => 0,
+  ),
+  ),
+  );
+}

@@ -1,0 +1,887 @@
+<?php
+// $Id$
+
+/**
+ * Amazon Integration
+ *
+ * Provides a Drupal wrapper and caching mechanism for the Amazon
+ * Ecommerce APIs. This module provides no user-visible functionality
+ * save configuration and setup.
+ */
+
+define('AMAZON_ECS_SCHEMA', '2010-09-01');
+define('AMAZON_PARTICIPANT_TYPES', 'Author,Artist,Actor,Director,Creator');
+
+// Other common sizes include SwatchImage, TinyImage, and ThumbnailImage.
+define('AMAZON_IMAGE_SIZES', 'SmallImage,MediumImage,LargeImage');
+
+/**
+ * Implementation of hook_menu. Adds the url path for the Amazon
+ * settings page.
+ */
+function amazon_menu() {
+  $items = array();
+  $items['admin/settings/amazon'] = array(
+    'title' => 'Amazon API',
+    'description' => 'Global settings for the Amazon Ecommerce API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('amazon_settings_form'),
+    'file' => 'amazon.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer amazon'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['admin/settings/amazon/storage'] = array(
+    'title' => 'Storage',
+    'description' => 'Local data storage settings for Amazon products.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('amazon_storage_settings_form'),
+    'file' => 'amazon.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer amazon'),
+    'type' => MENU_LOCAL_TASK
+  );
+  $items['admin/settings/amazon/test'] = array(
+    'title' => 'Test',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('amazon_test_form'),
+    'file' => 'amazon.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer amazon'),
+    'type' => MENU_LOCAL_TASK
+  );
+  $items['admin/settings/amazon/upgrade'] = array(
+    'page callback' => '_amazon_upgrade',
+    'file' => 'amazon.admin.inc',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer amazon'),
+    'type' => MENU_CALLBACK
+  );
+  $items['admin/settings/amazon/api'] = array(
+    'title' => 'Settings',
+    'weight' => -10,
+    'type' => MENU_DEFAULT_LOCAL_TASK
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm
+ */
+function amazon_perm() {
+  return array('administer amazon');
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function amazon_theme() {
+  $templates = array(
+    'amazon_item' => array(
+      'arguments' => array('item' => array(), 'style' => 'default'),
+      'pattern' => 'amazon_item__',
+      'template' => 'amazon-item',
+    ),
+    'amazon_inline_item' => array(
+      'arguments' => array('item' => array()),
+      'template' => 'amazon-inline-item',
+      // Re-use the existing infrastructure.
+      'preprocess functions' => 'amazon_preprocess_amazon_item',
+    ),
+    // Allows use of whatever is provided in preprocessed $variables.
+    'amazon_detail' => array(
+      'arguments' => array('item' => array(), 'detail' => NULL),
+      'template' => 'amazon-item-detail',
+      'preprocess functions' => array('amazon_preprocess_amazon_item'),
+    ),
+  );
+  return $templates;
+}
+
+
+/**
+ * hook_preprocess: amazon_item.
+ */
+function amazon_preprocess_amazon_item(&$variables) {
+
+  $item = $variables['item'];
+
+  // Do a quick cycle through the simple keys on the item, check_plain() them,
+  // and stick them in the variables collection.
+  foreach($item as $key => $value) {
+    if (is_string($value)) {
+      $variables[$key] = filter_xss($value);
+    }
+  }
+
+  $variables['type'] = _amazon_clean_type($item['producttypename']);
+  $variables['detailpageurl'] = check_url($item['detailpageurl']);
+  $variables['editorialreview'] = !empty($item['editorialreviews']) ? check_markup($item['editorialreviews'][0]['content']) : '';
+  $variables['customerreviews_iframe'] = !empty($item['customerreviews_iframe']) ? check_url($item['customerreviews_iframe']) : '';
+  $variables['invalid_asin'] = !empty($item['invalid_asin']) ? 1 : 0;
+
+  if (!empty($variables['theatricalreleasedate'])) {
+    $date = explode('-', $variables['theatricalreleasedate']);
+    $variables['releaseyear'] = $date[0];
+  }
+  else {
+    $variables['releaseyear'] = '';
+  }
+
+  if (!empty($variables['publicationdate'])) {
+    $date = explode('-', $variables['publicationdate']);
+    $variables['publicationyear'] = $date[0];
+  }
+  else {
+    $variables['publicationyear'] = '';
+  }
+
+  // Handle participants and types.
+  if (isset($item['participants'])) {
+    $variables['participants'] = filter_xss(filter_xss(implode(', ', $item['participants'])));
+    $participant_types = split(',', AMAZON_PARTICIPANT_TYPES);
+
+    foreach($participant_types as $participant_type) {
+      $participant_type = strtolower($participant_type);
+      if (!empty($item[$participant_type])) {
+        if (is_string($item[$participant_type])) {
+          $variables[$participant_type] = filter_xss($item[$participant_type]);
+        }
+        else {
+          $variables[$participant_type] = filter_xss(implode(', ', $item[$participant_type]));
+        }
+      }
+    }
+  }
+
+  $variables += array(
+    'participants' => '',
+    'director' => '',
+    'actor' => '',
+    'artist' => '',
+    'author' => '',
+  );
+
+  // Handle supported image resolutions.
+  if (isset($item['imagesets'])) {
+    foreach($item['imagesets'] as $key => $image) {
+      $variables[$key] = theme('image', $image['url'], t('Image of') . ' ' . check_plain($item['title']), check_plain($item['title']), array('height' => $image['height'], 'width' => $image['width']), FALSE);
+      $variables["{$key}url"] = check_url($image['url']);
+      $variables["{$key}height"] = check_plain($image['height']);
+      $variables["{$key}width"] = check_plain($image['width']);
+    }
+  }
+  $variables['image'] = !empty($variables['mediumimage']) ? $variables['mediumimage'] : '';
+
+  if (!empty($variables['style'])) {
+    $variables['classes'] = _amazon_item_classes($item) . ' amazon-item-' . check_plain($variables['style']);
+
+    // A set of more specific templates to use when displaying items.
+    $variables['template_files'][] = 'amazon-item-' . $variables['style'];
+    $variables['template_files'][] = 'amazon-item-' . strtolower($variables['type']);
+    $variables['template_files'][] = 'amazon-item-' . strtolower($variables['type']) .'-'. $variables['style'];
+
+    if (!empty($item['view']) && !empty($item['view']->name)) {
+      $vars['template_files'][] = 'amazon-item-view-' . $item['view']->name;
+      $variables['template_files'][] = 'amazon-item-' . strtolower($variables['type']) . '-view-' . $item['view']->name;
+    }
+  }
+
+}
+
+
+function _amazon_clean_type($type) {
+  return check_plain(strtolower(str_replace(array('ABIS_', 'CONSOLE_', 'VIDEO_', ' '), array('', '', '', '_'), $type)));
+}
+
+function _amazon_item_classes($item) {
+  return 'amazon-item amazon-item-'. str_replace('_', '-', _amazon_clean_type($item['producttypename']));
+}
+
+
+function amazon_http_request($operation, $parameters = array(), $locale = NULL) {
+  if (!isset($locale)) {
+    $locale = variable_get('amazon_locale', 'US');
+  }
+  $metadata = amazon_data_cache();
+  $locale_data = $metadata['locales'][$locale];
+
+  // Populate the params with default data.
+  $parameters += array(
+    'Service' => 'AWSECommerceService',
+    'Version' => AMAZON_ECS_SCHEMA,
+    'AWSAccessKeyId' => variable_get('amazon_aws_access_key', ''),
+    'Operation' => $operation,
+  );
+  if ($associate_id = amazon_get_associate_id()) {
+    $parameters += array(
+      'AssociateTag' => $associate_id,
+    );
+  }
+  $parameters_after_hook = module_invoke_all('amazon_request', $parameters);
+  if (!empty($parameters_after_hook)) {
+    $parameters = $parameters_after_hook;
+  }
+  $parameters += array('Timestamp' => gmdate("Y-m-d\TH:i:s"). 'Z');
+  uksort($parameters, 'strnatcmp');
+
+  $params = array();
+  foreach($parameters as $key => $value) {
+    if (is_array($value)) {
+      $value = implode(',', $value);
+    }
+    $param = str_replace("%7E", "~", rawurlencode($key));
+    $value = str_replace("%7E", "~", rawurlencode($value));
+    $params[] = $param .'='. $value;
+  }
+  $secret_access_key=variable_get('amazon_aws_secret_access_key',"");
+  if ($secret_access_key == "") {
+    watchdog('amazon',"No Secret Access Key configured. You must configure one at Admin->Settings->Amazon API", NULL, WATCHDOG_ERROR);
+    drupal_set_message(t("Amazon Module: No Secret Access Key is configured. Please contact your site administrator"));
+    return FALSE;
+  }
+  // Thanks for signature creation code from http://mierendo.com/software/aws_signed_query/
+  $query_string = implode('&',$params);
+  $parsed_url = parse_url($locale_data['url']);
+  $host=strtolower($parsed_url['host']);
+  $string_to_sign="GET\n$host\n{$parsed_url['path']}\n$query_string";
+
+  $signature = base64_encode(hash_hmac('sha256', $string_to_sign, $secret_access_key, TRUE));
+  $signature = str_replace("%7E", "~", rawurlencode($signature));
+  $query_string .= "&Signature=$signature";
+
+  $url = $locale_data['url'] .'?'. $query_string;
+  // Make the request and return a SimpleXML object.
+  $results = drupal_http_request($url, array(), 'GET');
+  if ($results->code == 200) {
+    $xml = new SimpleXMLElement($results->data);
+    return $xml;
+  }
+  if ($results->code >= 400 && $results->code < 500) {
+    try {
+      $xml = new SimpleXMLElement($results->data);
+    } catch (Exception $e) {
+      watchdog('amazon', "Error handling results: http_code=%http_code, data=%data.",array('%http_code' => $results->code, '%data' => (string)$results->data) );
+      return FALSE;
+    }
+    watchdog('amazon', "HTTP code %http_code accessing Amazon's AWS service: %code, %message", array('%http_code' => $results->code, '%code' => (string)$xml->Error->Code, '%message' => (string)$xml->Error->Message));
+    return FALSE;
+  }
+  watchdog('amazon', "Error accessing Amazon AWS web service. HTTP result code=%code, error=%error", array('%code' => $results->code, '%error' => $results->error));
+  return FALSE;
+}
+
+/**
+ * Look up an item using database or web.
+ * The default is to look in the database for existing data, and then to do the
+ * web search if that fails. $force_lookup==TRUE forces going to Amazon's
+ * API.
+ * @param $item_ids
+ *   An array of ASIN strings or a single ASIN as a string.
+ * @param $force_lookup
+ *   If TRUE, skip the database lookup and just go to the Amazon API lookup.
+ * @return array
+ *   Array of "cleaned" XML item descriptions, keyed on ASIN.
+ */
+function amazon_item_lookup($item_ids = array(), $force_lookup = FALSE) {
+  if (empty($item_ids)) {
+    return array();
+  }
+  if (is_string($item_ids)) {
+    $item_ids = array($item_ids);
+  }
+  $items = array();
+  if (!$force_lookup) {
+    $items = amazon_item_lookup_from_db($item_ids);
+  }
+
+  $items_to_fetch = array();
+  foreach ($item_ids as $item_id) {
+    if (!isset($items[$item_id])) {
+      $items_to_fetch[] = $item_id;
+    }
+  }
+  $items_from_web = amazon_item_lookup_from_web($items_to_fetch);
+  $full_set = $items + $items_from_web;
+  return $full_set;
+}
+
+/**
+ * Use Amazon API to look up an array of ASINs.
+ * @param $item_ids
+ *   Array of ASIN strings to look up.
+ * @return array
+ *   Array of cleaned XML structures keyed by ASIN.
+ */
+function amazon_item_lookup_from_web($item_ids = array()) {
+  $amazon_limit = 10;  // Amazon will accept no more than 10 items
+  $asins = array();
+  $results = array();
+  $item_ids = array_filter($item_ids);  // Remove any empty items.
+  foreach ($item_ids as $asin) {
+    if (!empty($asin)) {
+      $asins[] = $asin;
+      if (count($asins) >= $amazon_limit || count($asins) == count($item_ids)) {
+        $results += _amazon_item_batch_lookup_from_web($asins);
+        $asins = array();
+      }
+    }
+  }
+  return $results;
+}
+
+/**
+ * Get 10 or less items from the AWS web service.
+ * AWS allows ONLY 10 items,
+ * See http://docs.amazonwebservices.com/AWSECommerceService/latest/DG/index.html?ItemLookup.html.
+ * @param $item_ids
+ *   Array of ASINs to be looked up.
+ * @return
+ *   Array of ASIN data structures keyed by ASIN.
+ */
+function _amazon_item_batch_lookup_from_web($item_ids = array()) {
+  if (!empty($item_ids)) {
+    $params = array(
+      'ItemId' => implode(',', $item_ids),
+      'ResponseGroup' => 'Large',
+    );
+    $results = amazon_http_request('ItemLookup', $params);
+    if (!empty($results->Items->Request->Errors)) {
+      foreach($results->Items->Request->Errors->Error as $error) {
+        $code = (string)$error->Code;
+        $message = (string)$error->Message;
+        $matches = array();
+        // Find and extract the failing ASIN, so we can mark it in the db.
+        if (preg_match('/^([^ ]+) is not a valid value for ItemId/', $message, $matches)) {
+          $error_asin = $matches[1];
+          $query = "update {amazon_item} set invalid_asin = TRUE where asin = '%s'";
+          db_query($query, $error_asin);
+        }
+        watchdog('amazon','Error retrieving Amazon item %code, message: %message.', array('%code' => $code, '%message' => $message), WATCHDOG_WARNING);
+      }
+    }
+    $items = array();
+    if (!empty($results->Items->Item)) {
+      foreach($results->Items->Item as $xml) {
+        $item = amazon_item_clean_xml($xml);
+        amazon_item_insert($item);
+        $items["{$item['asin']}"] = $item;
+      }
+    }
+    return $items;
+  }
+  return array();
+}
+
+/**
+ * Look up ASINs in database and return arrays of information keyed by ASIN.
+ * @param $item_ids
+ *   An array of string ASINs.
+ * @return array
+ *   Array of Amazon 'cleaned' data structures keyed by ASIN.
+ */
+function amazon_item_lookup_from_db($item_ids = array()) {
+  if (!empty($item_ids)) {
+    $sql  = "SELECT * FROM {amazon_item} ai WHERE ai.asin IN (";
+    $sql .= implode(',', array_fill(0, count($item_ids), "'%s'")) .') ';
+    $sql .= 'AND ai.timestamp > %d';
+    $results = db_query($sql, array_merge($item_ids, array(time() - variable_get('amazon_refresh_schedule', 86400))));
+    $items = array();
+    while ($item = db_fetch_array($results)) {
+      _amazon_load_child_data($item);
+      $item += module_invoke_all('amazon_item_load', $item);
+      $items["{$item['asin']}"] = $item;
+    }
+    return $items;
+  }
+  return array();
+}
+
+/**
+ * Load participant, image, editorial_review data into database.
+ * @param $item
+ *   Amazon data structure.
+ */
+function _amazon_load_child_data(&$item) {
+  $result = db_query("SELECT type, participant FROM {amazon_item_participant} WHERE asin = '%s'", $item['asin']);
+  while ($participant = db_fetch_array($result)) {
+    unset($participant['asin']);
+    $item[$participant['type']][] = $participant['participant'];
+    $item['participants'][] = $participant['participant'];
+  }
+
+  $result = db_query("SELECT * FROM {amazon_item_image} WHERE asin = '%s'", $item['asin']);
+  while ($image = db_fetch_array($result)) {
+    unset($image['asin']);
+    $item['imagesets'][$image['size']] = $image;
+  }
+
+  $result = db_query("SELECT * FROM {amazon_item_editorial_review} WHERE asin = '%s'", $item['asin']);
+  while ($review = db_fetch_array($result)) {
+    unset($review['asin']);
+    $item['editorialreviews'][] = $review;
+  }
+}
+
+/**
+ * Take the Amazon XML item and turn it into our own private 'cleaned'
+ * data structure.
+ * @param $xml
+ *   XML structure as returned from Amazon API call.
+ * @return
+ *   'Cleaned' XML structure for local use.
+ */
+function amazon_item_clean_xml($xml) {
+  $metadata = amazon_data_cache();
+  $item = array();
+
+  // Pull the absolute basic information Amazon keeps at the top level
+  // of the XML tree, cast to string, and move on.
+  $item['asin'] = (string)$xml->ASIN;
+  if (empty($xml->ItemAttributes->ISBN)) {
+    $item['isbn'] = (string)$xml->ItemAttributes->ISBN;
+  }
+  if (empty($xml->ItemAttributes->EAN)) {
+    $item['ean'] = (string)$xml->ItemAttributes->EAN;
+  }
+  $item['salesrank'] = (string)$xml->SalesRank;
+  $item['detailpageurl'] = (string)$xml->DetailPageURL;
+
+  if (!empty($xml->ItemAttributes->ListPrice)) {
+    $item['listpriceamount'] = (string)$xml->ItemAttributes->ListPrice->Amount;
+    $item['listpricecurrencycode'] = (string)$xml->ItemAttributes->ListPrice->CurrencyCode;
+    $item['listpriceformattedprice'] = (string)$xml->ItemAttributes->ListPrice->FormattedPrice;
+  }
+  if (!empty($xml->OfferSummary->LowestNewPrice)) {
+    $item['lowestpriceamount'] = (string)$xml->OfferSummary->LowestNewPrice->Amount;
+    $item['lowestpricecurrencycode'] = (string)$xml->OfferSummary->LowestNewPrice->CurrencyCode;
+    $item['lowestpriceformattedprice'] = (string)$xml->OfferSummary->LowestNewPrice->FormattedPrice;
+  }
+  // Note that this one assumes we've searched with Merchant = Amazon.
+  // Otherwise we can do an xpath search looking for the actual amazon listing.
+  if (!empty($xml->Offers->Offer[0]->OfferListing->Price)) {
+    $amazon_merchant_ids = array(
+      /* JP */ 'ATVPDKIKX0DER',
+      /* UK */ 'A3P5ROKL5A1OLE',
+      /* JP */ 'AN1VRQENFRJN5',
+      /* FR */ 'A1X6FK5RDHNB96',
+      /* DE */ 'A3JWKAKR8XB7XF',
+      /* CA */ 'A3DWYIK6Y9EEQB',
+    );
+    $merchant = (string)$xml->Offers->Offer[0]->Merchant->MerchantId;
+    if (in_array($merchant, $amazon_merchant_ids)) {
+      $item['amazonpriceamount'] = (string)$xml->Offers->Offer[0]->OfferListing->Price->Amount;
+      $item['amazonpricecurrencycode'] = (string)$xml->Offers->Offer[0]->OfferListing->Price->CurrencyCode;
+      $item['amazonpriceformattedprice'] = (string)$xml->Offers->Offer[0]->OfferListing->Price->FormattedPrice;
+    }
+  }
+
+  $participant_types = split(',', AMAZON_PARTICIPANT_TYPES);
+
+  // Pull in the basics of the ItemAttributes collection.
+  foreach((array)($xml->ItemAttributes) as $key => $value) {
+    if (is_string($value) && !in_array($key, $participant_types)) {
+      $key = strtolower($key);
+      $item[$key] = $value;
+    }
+  }
+
+  // Handle the Authors/Artists/Etc.
+  foreach ($participant_types as $key) {
+    if (isset($xml->ItemAttributes->$key)) {
+      foreach($xml->ItemAttributes->$key as $value) {
+        $item[strtolower($key)][] = (string)$value;
+        $item['participants'][] = (string)$value;
+      }
+    }
+  }
+
+  // Handle the product images. In theory, there could be a million different
+  // product image types. We're only going to check for the most common ones
+  // and ignore the rest for now.
+  $supported_sizes = split(',', AMAZON_IMAGE_SIZES);
+  if (isset($xml->ImageSets->ImageSet)) {
+    foreach((array)$xml->ImageSets->ImageSet as $key => $data) {
+      if (in_array($key, $supported_sizes)) {
+        $item['imagesets'][strtolower($key)] = array(
+          'url' => (string)$data->URL,
+          'height' => (string)$data->Height,
+          'width' => (string)$data->Width,
+        );
+      }
+    }
+  }
+
+  // Handle the editorial reviews.
+  if (isset($xml->EditorialReviews)) {
+    foreach($xml->EditorialReviews->EditorialReview as $data) {
+      $item['editorialreviews'][] = array(
+        'source' => (string)$data->Source,
+        'content' => (string)$data->Content,
+      );
+    }
+  }
+
+  // And the customer reviews.
+  if (isset($xml->CustomerReviews)) {
+    $item['customerreviews_iframe'] = (string)$xml->CustomerReviews->IFrameURL;
+  }
+
+  // Give other modules an opportunity to pull out other bits of Amazon data
+  // that would otherwise be ignored. We can't use module_invoke_all, as it
+  // would lose the reference.
+  foreach (module_implements('amazon_item_clean_xml') as $module) {
+    $function = $module .'_amazon_item_clean_xml';
+    $function($item, $xml);
+  }
+  return $item;
+}
+
+/**
+ * Insert 'cleaned' amazon item into database.
+ * @param $item
+ *   'Cleaned' amazon structure.
+ * @return
+ *   No return value.
+ */
+function amazon_item_insert($item) {
+  // We have boatloads of data to insert in here, so we're going to
+  // cheat and blow away the old entries first.
+  amazon_item_delete($item['asin']);
+
+  $metadata = amazon_data_cache();
+
+  $item['timestamp'] = time();
+  drupal_write_record('amazon_item', $item);
+
+  // Handle the various credits for a product, including Artist, Author,
+  // Actor, etc. We map these to a separate table.
+  if (in_array('creators', variable_get('amazon_core_data', array('creators', 'images')))) {
+    $participant_types = split(',', AMAZON_PARTICIPANT_TYPES);
+    foreach ($participant_types as $type) {
+      if (isset($item[strtolower($type)])){
+        foreach((array)$item[strtolower($type)] as $participant) {
+          $item_participant = array('asin' => $item['asin'], 'type' => strtolower($type), 'participant' => $participant);
+          drupal_write_record('amazon_item_participant', $item_participant);
+        }
+      }
+    }
+  }
+
+
+  // Save the product images if they exist, or provide defaults
+  if (in_array('images', variable_get('amazon_core_data', array('creators', 'images')))) {
+
+    // If we have no images, go get default images.
+    // TODO: This is pretty ugly. Find a better way. Store this information as
+    // variable, whatever.  No reason to do this every time.
+    if (empty($item['imagesets'])) {
+      $default_image = variable_get('amazon_default_image', '');
+      foreach (array('small', 'medium', 'large') as $key) {
+        $preset_name = variable_get('amazon_default_image_' . $key . '_preset', '');
+        if (!empty($preset_name)) {
+          $preset = imagecache_preset_by_name($preset_name);
+          $themed_image = theme('imagecache', $preset_name, $default_image, t('No image was provided'));
+          if ($key == 'medium') {
+            $themed_default_image = $themed_image;
+          }
+          preg_match_all('/(src|height|width)=("[^"]*")/i', $themed_image, $tags);
+          foreach ($tags[1] as $tag_index => $tag) {
+            if ($tag == 'src') {
+              $item['imagesets']["{$key}image"]['url'] = str_replace('"', '',$tags[2][$tag_index]);
+            }
+            if ($tag == 'width') {
+              $item['imagesets']["{$key}image"]['width'] = str_replace('"', '',$tags[2][$tag_index]);
+                          }
+            if ($tag == 'height') {
+              $item['imagesets']["{$key}image"]['height'] = str_replace('"', '',$tags[2][$tag_index]);
+            }
+          }
+        }
+      }
+    }
+    if (isset($item['imagesets'])) {
+      foreach($item['imagesets'] as $size => $data) {
+        $image = array('asin' => $item['asin'], 'size' => $size, 'height' => $data['height'], 'width' => $data['width'], 'url' => $data['url']);
+        drupal_write_record('amazon_item_image', $image);
+      }
+    }
+  }
+
+  // Save the editorial reviews if they exist.
+  if (in_array('editorial_reviews', variable_get('amazon_core_data', array('creators', 'images')))) {
+    if (isset($item['editorialreviews'])) {
+      foreach($item['editorialreviews'] as $data) {
+        $review = array('asin' => $item['asin'], 'source' => $data['source'], 'content' => $data['content']);
+        drupal_write_record('amazon_item_editorial_review', $review);
+      }
+    }
+  }
+  module_invoke_all('amazon_item_insert', $item);
+}
+
+/**
+ * Delete all vestiges of Amazon item.
+ * @param $asin
+ *   ASIN to be deleted.
+ * @return No return.
+ */
+function amazon_item_delete($asin) {
+  module_invoke_all('amazon_item_delete', $asin);
+  db_query("DELETE FROM {amazon_item} WHERE asin = '%s'", $asin);
+  db_query("DELETE FROM {amazon_item_participant} WHERE asin = '%s'", $asin);
+  db_query("DELETE FROM {amazon_item_image} WHERE asin = '%s'", $asin);
+  db_query("DELETE FROM {amazon_item_editorial_review} WHERE asin = '%s'", $asin);
+}
+
+/**
+ * Try to turn a non-asin into an ASIN where possible.
+ *
+ * If the received input appears to be an EAN (ISBN-13) or an Amazon.com/de/uk
+ * link, then this tries to convert it into an ASIN.
+ * @param $input
+ * @return
+ *   An ASIN if possible. Otherwise whatever was passed in,
+ *   after removing dashes.
+ */
+function amazon_convert_to_asin($input) {
+  $input = preg_replace('/-/','',$input); // Remove dashes.
+  if (preg_match('/^https?:/', $input)) {
+    $parts = preg_split('/\//', $input);
+    $asin = $parts[5]; // 6th section of split, right after /dp/
+    return $asin;
+  }
+  // Attempt conversion of 13-digit ASIN by doing an Amazon lookup.
+  if (strlen($input) == 13 && is_numeric($input)) {
+    $asin = amazon_ean_to_asin($input);
+    return $asin;
+  }
+  return $input;
+}
+
+/**
+ * Given an EAN (ISBN-13), try to get Amazon to give it to us.
+ * @param $ean
+ *   The EAN, ISBN-13 value
+ * @return
+ *   The asin, or NULL if unsuccessful.
+ * @see https://affiliate-program.amazon.com/gp/associates/help/t5/a16?ie=UTF8&pf_rd_t=501&pf_rd_m=ATVPDKIKX0DER&pf_rd_p=&pf_rd_s=assoc-center-2&pf_rd_r=&pf_rd_i=assoc_glossary
+ */
+function amazon_ean_to_asin($ean) {
+  $asin = NULL;
+  $params = array(
+    'ItemId' => $ean,
+    'IdType' => 'EAN',
+    'SearchIndex' => 'Books',
+  );
+  $results = amazon_http_request('ItemLookup', $params);
+  if (!empty($results->Items->Item->ASIN)) {
+    $asin = (string)$results->Items->Item->ASIN;
+  }
+  return $asin;
+}
+/**
+ * Utility functions for managing AmazonItem/Node relationships
+ */
+
+function amazon_item_node_save($asin, $node, $module = 'amazon', $weight = 0) {
+  amazon_item_node_delete($asin, $nid, $module);
+  db_query("INSERT INTO {amazon_item_node} (asin, vid, nid, module, weight) VALUES ('%s', %d, '%s', %d)", $asin, $nid, $module, $weight);
+}
+
+function amazon_item_node_delete($asin = NULL, $nid = NULL, $module = NULL) {
+  $sql = "DELETE FROM {amazon_item_node} WHERE 1 = 1";
+  $params = array();
+  if (isset($asin)) {
+    $sql = " AND asin = '%s'";
+    $params[] = $asin;
+  }
+
+  if (isset($nid)) {
+    $sql = " AND nid = %d";
+    $params[] = $nid;
+  }
+
+  if (isset($module)) {
+    $sql = " AND module = '%s'";
+    $params[] = $module;
+  }
+
+  if (count($params)) {
+    db_query($sql, $params);
+  }
+}
+
+
+/**
+ * Misc. helper functions for managing the wide array of Amazon
+ * data bitsies.
+ */
+
+function amazon_data_cache($reset = FALSE) {
+  static $data;
+  if (!isset($data) || $reset) {
+    if (!$reset && ($cache = cache_get('amazon:metadata')) && !empty($cache->data)) {
+      $data = $cache->data;
+    }
+    else {
+      $data = array();
+      $data['locales'] = _amazon_default_locales();
+
+      drupal_alter('amazon_metadata', $data);
+      cache_set('amazon:metadata', $data);
+    }
+  }
+  return $data;
+}
+
+function _amazon_default_locales() {
+  $locales = array();
+  $locales['US'] = array(
+    'url'     => 'http://ecs.amazonaws.com/onca/xml',
+    'name'    => t('United States'),
+  );
+  $locales['UK'] = array(
+    'url'     => 'http://ecs.amazonaws.co.uk/onca/xml',
+    'name'    => t('United Kingdom'),
+  );
+  $locales['JP'] = array(
+    'url'     => 'http://ecs.amazonaws.jp/onca/xml',
+    'name'    => t('Japan'),
+  );
+  $locales['FR'] = array(
+    'url'     => 'http://ecs.amazonaws.fr/onca/xml',
+    'name'    => t('France'),
+  );
+  $locales['DE'] = array(
+    'url'     => 'http://ecs.amazonaws.de/onca/xml',
+    'name'    => t('Germany'),
+  );
+  $locales['CA'] = array(
+    'url'     => 'http://ecs.amazonaws.ca/onca/xml',
+    'name'    => t('Canada'),
+  );
+
+  return $locales;
+}
+
+function amazon_get_associate_id() {
+  switch (variable_get('amazon_associate_setting', 'association')) {
+    case 'association':
+      return 'drupal0a-20';
+      break;
+    case 'custom':
+      return variable_get('amazon_custom_associate_id', '');
+      break;
+    default:
+      return FALSE;
+  }
+}
+
+function amazon_cron() {
+  // Here, we're going to chug through all the existing ASINs and update them.
+  // We'll grab 50 at a time to avoid thrashing things.
+  $sql = "SELECT asin FROM {amazon_item} WHERE timestamp < %d";
+  $result = db_query_range($sql, time() - variable_get('amazon_refresh_schedule', 86400), 0, 50);
+  $asins = array();
+
+  while($item = db_fetch_array($result)) {
+    $asins[] = $item['asin'];
+  }
+
+  if (!empty($asins)) {
+    if ($items = amazon_item_lookup_from_web($asins)) {
+      foreach ($items as $item) {
+        amazon_item_insert($item);
+      }
+      watchdog('amazon', 'Amazon items were updated.');
+    }
+    else {
+      watchdog('amazon', 'Amazon items could not be updated.');
+    }
+  }
+}
+
+function amazon_token_list($type = 'all') {
+  if ($type == 'amazon_item' || $type == 'all') {
+    $tokens['amazon_item']['asin'] = t('Product ID');
+    $values['amazon_item']['isbn'] = t('The 10-digit ISBN (International Standard Book Number)');
+    $values['amazon_item']['ean'] = t('The EAN or 13-digit ISBN');
+    $tokens['amazon_item']['detailpageurl'] = t('The detail page URL for the item');
+    $tokens['amazon_item']['salesrank'] = t("The product's sales rank");
+    $tokens['amazon_item']['brand'] = t("The product's brand");
+    $tokens['amazon_item']['publisher'] = t("The product's publisher");
+    $tokens['amazon_item']['manufacturer'] = t("The product's manufacturer");
+    $tokens['amazon_item']['studio'] = t("The product's studio");
+    $tokens['amazon_item']['label'] = t("The product's label");
+    $tokens['amazon_item']['binding'] = t("The product's binding type");
+    $tokens['amazon_item']['releasedate'] = t("The product's release date");
+    $tokens['amazon_item']['listprice'] = t("The product's list price");
+    $tokens['amazon_item']['producttype'] = t("The product's Amazon product type");
+    $values['amazon_item']['lowestprice'] = t('The lowest price currently offered by any merchant at Amazon');
+    $values['amazon_item']['amazonprice'] = t('Current price offered by Amazon');
+    return $tokens;
+  }
+}
+
+function amazon_token_values($type, $object = NULL, $options = array()) {
+  if ($type == 'amazon_item' || $type == 'all') {
+    $item = (array)$object;
+    $values['asin'] = check_plain($item['asin']);
+    $values['isbn'] = check_plain($item['isbn']);
+    $values['ean'] = check_plain($item['ean']);
+    $values['detailpageurl'] = check_url($item['detailpageurl']);
+    $values['salesrank'] = check_plain($item['salesrank']);
+    $values['brand'] = check_plain($item['brand']);
+    $values['publisher'] = check_plain($item['publisher']);
+    $values['manufacturer'] = check_plain($item['manufacturer']);
+    $values['studio'] = check_plain($item['studio']);
+    $values['label'] = check_plain($item['label']);
+    $values['binding'] = check_plain($item['binding']);
+    $values['releasedate'] = check_plain($item['releasedate']);
+    $values['listprice'] = check_plain($item['listpriceformattedprice']);
+    $values['producttype'] = check_plain($item['producttype']);
+    $values['lowestprice'] = check_plain($item['lowestpriceformattedprice']);
+    $values['amazonprice'] = check_plain($item['amazonpriceformattedprice']);
+    return $values;
+  }
+}
+
+/**
+ * Implementation of hook_views_api.
+ */
+function amazon_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'amazon') . '/includes',
+  );
+}
+
+/**
+ * Template helper for theme_amazon_views_view_row_item
+ */
+function template_preprocess_amazon_views_view_row_item(&$vars) {
+  $options = $vars['options'];
+  $vars['amazon_item'] = ''; // make sure var is defined.
+  $asin = $vars['row']->asin;
+  $items = amazon_item_lookup($asin);
+  if (empty($items[$asin])) {
+    return;
+  }
+  else {
+    $item = $items[$asin];
+    $item['view'] = $vars['view'];
+    $vars['amazon_item'] = $item;
+    if ($options['display_format'] == 'inline') {
+      $vars['content'] = theme('amazon_item_inline', $item, $options['display_format']);
+    }
+    else {
+      $vars['content'] = theme('amazon_item', $item, $options['display_format']);
+    }
+  }
+}
+
+function amazon_init() {
+  drupal_add_css(drupal_get_path('module', 'amazon') . '/amazon.css');
+}

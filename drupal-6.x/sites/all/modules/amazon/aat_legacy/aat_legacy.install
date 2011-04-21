@@ -1,0 +1,10 @@
+<?php
+// $Id $
+
+function aat_legacy_install() {
+  drupal_set_message(t("The AAT Legacy module is only for importing legacy data. After data is imported, this module can be disabled."));
+}
+
+function aat_legacy_uninstall() {
+
+}

@@ -1,0 +1,7 @@
+name = Amazon field
+description = Provides a CCK field type for Amazon products.
+package = Amazon
+dependencies[] = amazon
+dependencies[] = content
+core = 6.x
+php = 5.2

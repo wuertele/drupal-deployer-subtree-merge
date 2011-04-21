@@ -1,0 +1,85 @@
+<?php
+// $Id$
+
+function amazon_media_install() {
+  drupal_install_schema('amazon_media');
+}
+
+function amazon_media_schema() {
+  $schema['amazon_book'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'ean' => array('type' => 'varchar', 'length' => 20, 'not null' => TRUE),
+      'isbn' => array('type' => 'varchar', 'length' => 20, 'not null' => TRUE),
+      'deweydecimalnumber' => array('type' => 'varchar', 'length' => 64),
+      'edition' => array('type' => 'int'),
+      'numberofpages' => array('type' => 'int'),
+      'publicationdate' => array('type' => 'varchar', 'length' => 32),
+    ),
+    'primary key' => array('asin'),
+  );
+
+  $schema['amazon_dvd'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'regioncode' => array('type' => 'int'),
+      'runningtime' => array('type' => 'int'),
+      'audiencerating' => array('type' => 'varchar', 'length' => 64),
+      'aspectratio' => array('type' => 'varchar', 'length' => 16),
+      'theatricalreleasedate' => array('type' => 'varchar', 'length' => 32),
+    ),
+    'primary key' => array('asin'),
+  );
+
+  $schema['amazon_music'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'artist' => array('type' => 'varchar', 'length' => 128),
+      'label' => array('type' => 'varchar', 'length' => 128),
+      'studio' => array('type' => 'varchar', 'length' => 128),
+      'numberofdiscs' => array('type' => 'int', 'default' => 1),
+    ),
+    'primary key' => array('asin'),
+  );
+
+  $schema['amazon_software'] = array(
+    'fields' => array(
+      'asin' => array('type' => 'varchar', 'length' => 64, 'not null' => TRUE),
+      'esrbagerating' => array('type' => 'varchar', 'length' => 32),
+      'operatingsystem' => array('type' => 'varchar', 'length' => 64),
+      'hardwareplatform' => array('type' => 'varchar', 'length' => 64),
+      'platform' => array('type' => 'varchar', 'length' => 64),
+      'genre' => array('type' => 'varchar', 'length' => 128),
+    ),
+    'primary key' => array('asin'),
+  );
+
+  return $schema;
+}
+
+function amazon_media_uninstall() {
+  db_query("DROP TABLE {amazon_book}");
+  db_query("DROP TABLE {amazon_dvd}");
+  db_query("DROP TABLE {amazon_music}");
+  db_query("DROP TABLE {amazon_software}");
+}
+
+
+function amazon_media_update_6001() {
+  $ret = array();
+
+  $field = array('type' => 'varchar', 'length' => 64);
+  db_change_field($ret, 'amazon_dvd', 'audiencerating', 'theatricalreleasedate', $field);
+
+  return $ret;
+}
+
+/**
+ * Add the isbn and ean fields to a book item.
+ */
+function amazon_media_update_6002() {
+  $ret = array();
+  db_add_field($ret, 'amazon_book', 'isbn', array('type' => 'varchar', 'length' => 20));
+  db_add_field($ret, 'amazon_book', 'ean', array('type' => 'varchar', 'length' => 20));
+  return $ret;
+}
