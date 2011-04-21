@@ -19,3 +19,11 @@ Advancing 6.19 to 6.20:
 
 git fetch drupal.org
 git merge -s subtree 6.20
+
+Adding modules:
+
+git remote add -f drupal.org/admin_menu http://git.drupal.org/project/admin_menu.git
+git merge -s ours --no-commit 18eb12b8d83767d3497942475e0290901c1ef008
+git read-tree --prefix=drupal-6.x/sites/all/modules/admin_menu 18eb12b8d83767d3497942475e0290901c1ef008
+git commit -m "Merge of admin_menu"
+git reset --hard
