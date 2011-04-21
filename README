@@ -29,76 +29,446 @@ git commit -m "Merge of admin_menu"
 git reset --hard
 
 git remote add -f drupal.org/advanced_help http://git.drupal.org/project/advanced_help.git
+git merge -s ours --no-commit 775335f1fa68a4bf05c1ca8d8fd0e544c56383a6
+git read-tree --prefix=drupal-6.x/sites/all/modules/advanced_help  775335f1fa68a4bf05c1ca8d8fd0e544c56383a6
+git commit -m "Merge of advanced_help"
+git reset --hard
+
 git remote add -f drupal.org/amazon http://git.drupal.org/project/amazon.git
+git merge -s ours --no-commit dc8728fbec694fd32697692192996af5200ea3e7
+git read-tree --prefix=drupal-6.x/sites/all/modules/amazon  dc8728fbec694fd32697692192996af5200ea3e7
+git commit -m "Merge of amazon"
+git reset --hard
+
 git remote add -f drupal.org/arrange_fields http://git.drupal.org/project/arrange_fields.git
+git merge -s ours --no-commit da30c2a180372fba7ed821592fbd5e63528c4a67
+git read-tree --prefix=drupal-6.x/sites/all/modules/arrange_fields  da30c2a180372fba7ed821592fbd5e63528c4a67
+git commit -m "Merge of arrange_fields"
+git reset --hard
+
 git remote add -f drupal.org/autoload http://git.drupal.org/project/autoload.git
+git merge -s ours --no-commit be75c14defe982ff455fe2ece968927b7502c4e1
+git read-tree --prefix=drupal-6.x/sites/all/modules/autoload  be75c14defe982ff455fe2ece968927b7502c4e1
+git commit -m "Merge of autoload"
+git reset --hard
+
 git remote add -f drupal.org/auto_nodetitle http://git.drupal.org/project/auto_nodetitle.git
+git merge -s ours --no-commit b1db6e6e8124f780c6423c8844a10d9c18174853
+git read-tree --prefix=drupal-6.x/sites/all/modules/auto_nodetitle  b1db6e6e8124f780c6423c8844a10d9c18174853
+git commit -m "Merge of auto_nodetitle"
+git reset --hard
+
 git remote add -f drupal.org/cck http://git.drupal.org/project/cck.git
+git merge -s ours --no-commit f548f9974314fe70674e6004cbbb814bb1270978
+git read-tree --prefix=drupal-6.x/sites/all/modules/cck  f548f9974314fe70674e6004cbbb814bb1270978
+git commit -m "Merge of cck"
+git reset --hard
+
 git remote add -f drupal.org/cck_fieldgroup_tabs http://git.drupal.org/project/cck_fieldgroup_tabs.git
+git merge -s ours --no-commit e9ffaeb0d9c0e80d079ed26131938e75d58ee405
+git read-tree --prefix=drupal-6.x/sites/all/modules/cck_fieldgroup_tabs  e9ffaeb0d9c0e80d079ed26131938e75d58ee405
+git commit -m "Merge of cck_fieldgroup_tabs"
+git reset --hard
+
 git remote add -f drupal.org/codefilter http://git.drupal.org/project/codefilter.git
+git merge -s ours --no-commit cfdf6e65583127c1694b31b51c482fcb4518f7c7
+git read-tree --prefix=drupal-6.x/sites/all/modules/codefilter  cfdf6e65583127c1694b31b51c482fcb4518f7c7
+git commit -m "Merge of codefilter"
+git reset --hard
+
 git remote add -f drupal.org/comment_upload http://git.drupal.org/project/comment_upload.git
+git merge -s ours --no-commit 9eb528cc652045ae7253d0863ec88c4a2043dd66
+git read-tree --prefix=drupal-6.x/sites/all/modules/comment_upload  9eb528cc652045ae7253d0863ec88c4a2043dd66
+git commit -m "Merge of comment_upload"
+git reset --hard
+
 git remote add -f drupal.org/computed_field http://git.drupal.org/project/computed_field.git
+git merge -s ours --no-commit a8b5ec3249fc918171704f31ee48558605a929b5
+git read-tree --prefix=drupal-6.x/sites/all/modules/computed_field  a8b5ec3249fc918171704f31ee48558605a929b5
+git commit -m "Merge of computed_field"
+git reset --hard
+
 git remote add -f drupal.org/ctools http://git.drupal.org/project/ctools.git
+git merge -s ours --no-commit 28aba335c4c56ea589110cf1430ddef54f43bc4f
+git read-tree --prefix=drupal-6.x/sites/all/modules/ctools  28aba335c4c56ea589110cf1430ddef54f43bc4f
+git commit -m "Merge of ctools"
+git reset --hard
+
 git remote add -f drupal.org/currency http://git.drupal.org/project/currency.git
+git merge -s ours --no-commit f0c443ca4dab3e894b73b58c5ea8e74a95a89cee
+git read-tree --prefix=drupal-6.x/sites/all/modules/currency  f0c443ca4dab3e894b73b58c5ea8e74a95a89cee
+git commit -m "Merge of currency"
+git reset --hard
+
 git remote add -f drupal.org/devel http://git.drupal.org/project/devel.git
+git merge -s ours --no-commit ff56ee79f0a66aea1578aedf95447e922333f5bc
+git read-tree --prefix=drupal-6.x/sites/all/modules/devel  ff56ee79f0a66aea1578aedf95447e922333f5bc
+git commit -m "Merge of devel"
+git reset --hard
+
 git remote add -f drupal.org/drupalforfirebug http://git.drupal.org/project/drupalforfirebug.git
+git merge -s ours --no-commit d28193a7500d518a1fe939d17b5df585fcfc743d
+git read-tree --prefix=drupal-6.x/sites/all/modules/drupalforfirebug  d28193a7500d518a1fe939d17b5df585fcfc743d
+git commit -m "Merge of drupalforfirebug"
+git reset --hard
+
 git remote add -f drupal.org/elements http://git.drupal.org/project/elements.git
+git merge -s ours --no-commit 7a97dfe78bbbff800dbf5eed647c6b9c6fd83a17
+git read-tree --prefix=drupal-6.x/sites/all/modules/elements  7a97dfe78bbbff800dbf5eed647c6b9c6fd83a17
+git commit -m "Merge of elements"
+git reset --hard
+
 git remote add -f drupal.org/faq http://git.drupal.org/project/faq.git
+git merge -s ours --no-commit e162f8d2d478c6c4b7e05d274ee853f042856c7c
+git read-tree --prefix=drupal-6.x/sites/all/modules/faq  e162f8d2d478c6c4b7e05d274ee853f042856c7c
+git commit -m "Merge of faq"
+git reset --hard
+
 git remote add -f drupal.org/fbconnect http://git.drupal.org/project/fbconnect.git
+git merge -s ours --no-commit a473473f7257628c4428e9e4ffa4de55b91f8adf
+git read-tree --prefix=drupal-6.x/sites/all/modules/fbconnect  a473473f7257628c4428e9e4ffa4de55b91f8adf
+git commit -m "Merge of fbconnect"
+git reset --hard
+
 git remote add -f drupal.org/fckeditor http://git.drupal.org/project/fckeditor.git
+git merge -s ours --no-commit 65f2f71f6a5223ad7ed00795aff6971cc3926c8e
+git read-tree --prefix=drupal-6.x/sites/all/modules/fckeditor  65f2f71f6a5223ad7ed00795aff6971cc3926c8e
+git commit -m "Merge of fckeditor"
+git reset --hard
+
 git remote add -f drupal.org/feedback http://git.drupal.org/project/feedback.git
+git merge -s ours --no-commit d3fcc8abb75e9223e1a1ae2b50fd484809c8d876
+git read-tree --prefix=drupal-6.x/sites/all/modules/feedback  d3fcc8abb75e9223e1a1ae2b50fd484809c8d876
+git commit -m "Merge of feedback"
+git reset --hard
+
 git remote add -f drupal.org/file_aliases http://git.drupal.org/project/file_aliases.git
+git merge -s ours --no-commit 1c0d56d3627f5a562ca3d77a6ea1a963f44580b6
+git read-tree --prefix=drupal-6.x/sites/all/modules/file_aliases  1c0d56d3627f5a562ca3d77a6ea1a963f44580b6
+git commit -m "Merge of file_aliases"
+git reset --hard
+
 git remote add -f drupal.org/filefield http://git.drupal.org/project/filefield.git
+git merge -s ours --no-commit 317c8ec0d33ce544b8fb0d47443a2b0910423964
+git read-tree --prefix=drupal-6.x/sites/all/modules/filefield  317c8ec0d33ce544b8fb0d47443a2b0910423964
+git commit -m "Merge of filefield"
+git reset --hard
+
 git remote add -f drupal.org/filefield_paths http://git.drupal.org/project/filefield_paths.git
+git merge -s ours --no-commit f3cf8f2e09b76b6c96c1d4c4440b6503e629afe2
+git read-tree --prefix=drupal-6.x/sites/all/modules/filefield_paths  f3cf8f2e09b76b6c96c1d4c4440b6503e629afe2
+git commit -m "Merge of filefield_paths"
+git reset --hard
+
 git remote add -f drupal.org/flickr http://git.drupal.org/project/flickr.git
+git merge -s ours --no-commit edd55a13e8b339135118e7aa2cf544db991540c7
+git read-tree --prefix=drupal-6.x/sites/all/modules/flickr  edd55a13e8b339135118e7aa2cf544db991540c7
+git commit -m "Merge of flickr"
+git reset --hard
+
 git remote add -f drupal.org/format_number http://git.drupal.org/project/format_number.git
+git merge -s ours --no-commit d1702e3fb6b4d67c387ab60806fe86c35c6a70e6
+git read-tree --prefix=drupal-6.x/sites/all/modules/format_number  d1702e3fb6b4d67c387ab60806fe86c35c6a70e6
+git commit -m "Merge of format_number"
+git reset --hard
+
 git remote add -f drupal.org/formatted_number http://git.drupal.org/project/formatted_number.git
+git merge -s ours --no-commit 45c3e97be052acbed077ff2bda9e7f72de2a89f6
+git read-tree --prefix=drupal-6.x/sites/all/modules/formatted_number  45c3e97be052acbed077ff2bda9e7f72de2a89f6
+git commit -m "Merge of formatted_number"
+git reset --hard
+
 git remote add -f drupal.org/globalredirect http://git.drupal.org/project/globalredirect.git
+git merge -s ours --no-commit b1d1926fe703f88156b57b477d7c341bf85fd1ac
+git read-tree --prefix=drupal-6.x/sites/all/modules/globalredirect  b1d1926fe703f88156b57b477d7c341bf85fd1ac
+git commit -m "Merge of globalredirect"
+git reset --hard
+
 git remote add -f drupal.org/google_analytics http://git.drupal.org/project/google_analytics.git
+git merge -s ours --no-commit 406d3eb8d8d6144ebbfafcb1f0caabc8cde61758
+git read-tree --prefix=drupal-6.x/sites/all/modules/google_analytics  406d3eb8d8d6144ebbfafcb1f0caabc8cde61758
+git commit -m "Merge of google_analytics"
+git reset --hard
+
 git remote add -f drupal.org/htmlpurifier http://git.drupal.org/project/htmlpurifier.git
+git merge -s ours --no-commit 30d9cdac5cd2883f2c64748946cfcc1fa38791b5
+git read-tree --prefix=drupal-6.x/sites/all/modules/htmlpurifier  30d9cdac5cd2883f2c64748946cfcc1fa38791b5
+git commit -m "Merge of htmlpurifier"
+git reset --hard
+
 git remote add -f drupal.org/image http://git.drupal.org/project/image.git
+git merge -s ours --no-commit d900d7f90711c5f00b6d6b0a388559d03c87b28a
+git read-tree --prefix=drupal-6.x/sites/all/modules/image  d900d7f90711c5f00b6d6b0a388559d03c87b28a
+git commit -m "Merge of image"
+git reset --hard
+
 git remote add -f drupal.org/imageapi http://git.drupal.org/project/imageapi.git
+git merge -s ours --no-commit d92f61af372ee82f6d8077acff34d0edf60b0147
+git read-tree --prefix=drupal-6.x/sites/all/modules/imageapi  d92f61af372ee82f6d8077acff34d0edf60b0147
+git commit -m "Merge of imageapi"
+git reset --hard
+
 git remote add -f drupal.org/imagefield http://git.drupal.org/project/imagefield.git
+git merge -s ours --no-commit afb9715c2de1e8f7388f0e5cc4123dbe81848685
+git read-tree --prefix=drupal-6.x/sites/all/modules/imagefield  afb9715c2de1e8f7388f0e5cc4123dbe81848685
+git commit -m "Merge of imagefield"
+git reset --hard
+
 git remote add -f drupal.org/imagefield_tokens http://git.drupal.org/project/imagefield_tokens.git
+git merge -s ours --no-commit 0418532bd9e5c827db312fdca5b1a20fe4b809ab
+git read-tree --prefix=drupal-6.x/sites/all/modules/imagefield_tokens  0418532bd9e5c827db312fdca5b1a20fe4b809ab
+git commit -m "Merge of imagefield_tokens"
+git reset --hard
+
 git remote add -f drupal.org/inputstream http://git.drupal.org/project/inputstream.git
+git merge -s ours --no-commit 224bb3d5724d677ef81795f851a4f118cc4d8283
+git read-tree --prefix=drupal-6.x/sites/all/modules/inputstream  224bb3d5724d677ef81795f851a4f118cc4d8283
+git commit -m "Merge of inputstream"
+git reset --hard
+
 git remote add -f drupal.org/jquery_ui http://git.drupal.org/project/jquery_ui.git
+git merge -s ours --no-commit a51a5ab234e0b0544574c122ef9df9471b5ffe92
+git read-tree --prefix=drupal-6.x/sites/all/modules/jquery_ui  a51a5ab234e0b0544574c122ef9df9471b5ffe92
+git commit -m "Merge of jquery_ui"
+git reset --hard
+
 git remote add -f drupal.org/json_server http://git.drupal.org/project/json_server.git
+git merge -s ours --no-commit 528210e98290a4d771b4f4bbd8e6191946fcd8cd
+git read-tree --prefix=drupal-6.x/sites/all/modules/json_server  528210e98290a4d771b4f4bbd8e6191946fcd8cd
+git commit -m "Merge of json_server"
+git reset --hard
+
 git remote add -f drupal.org/link http://git.drupal.org/project/link.git
+git merge -s ours --no-commit bba5c8a52eb3a3f508e1613e0f6fa0d993a3a176
+git read-tree --prefix=drupal-6.x/sites/all/modules/link  bba5c8a52eb3a3f508e1613e0f6fa0d993a3a176
+git commit -m "Merge of link"
+git reset --hard
+
 git remote add -f drupal.org/logintoboggan http://git.drupal.org/project/logintoboggan.git
+git merge -s ours --no-commit 1f32e758b7f7acc015c7b6cfa11cc91544891214
+git read-tree --prefix=drupal-6.x/sites/all/modules/logintoboggan  1f32e758b7f7acc015c7b6cfa11cc91544891214
+git commit -m "Merge of logintoboggan"
+git reset --hard
+
 git remote add -f drupal.org/mimedetect http://git.drupal.org/project/mimedetect.git
+git merge -s ours --no-commit ca9db254b785887fee344ad65970b4c1d25e40c2
+git read-tree --prefix=drupal-6.x/sites/all/modules/mimedetect  ca9db254b785887fee344ad65970b4c1d25e40c2
+git commit -m "Merge of mimedetect"
+git reset --hard
+
 git remote add -f drupal.org/mollom http://git.drupal.org/project/mollom.git
+git merge -s ours --no-commit ef7c9b1860b9a7799ab3df50c9b840ece8c14162
+git read-tree --prefix=drupal-6.x/sites/all/modules/mollom  ef7c9b1860b9a7799ab3df50c9b840ece8c14162
+git commit -m "Merge of mollom"
+git reset --hard
+
 git remote add -f drupal.org/mvf http://git.drupal.org/project/mvf.git
+git merge -s ours --no-commit 361c8de57a69f66216512c65c219e6345bc2571d
+git read-tree --prefix=drupal-6.x/sites/all/modules/mvf  361c8de57a69f66216512c65c219e6345bc2571d
+git commit -m "Merge of mvf"
+git reset --hard
+
 git remote add -f drupal.org/node_export http://git.drupal.org/project/node_export.git
+git merge -s ours --no-commit d3aa52fbfe170d04395283f11758c3d5d2b1ea38
+git read-tree --prefix=drupal-6.x/sites/all/modules/node_export  d3aa52fbfe170d04395283f11758c3d5d2b1ea38
+git commit -m "Merge of node_export"
+git reset --hard
+
 git remote add -f drupal.org/nodereference_views http://git.drupal.org/project/nodereference_views.git
+git merge -s ours --no-commit 0d65a9782d35bd702de80d6fbd345f81d41d8743
+git read-tree --prefix=drupal-6.x/sites/all/modules/nodereference_views  0d65a9782d35bd702de80d6fbd345f81d41d8743
+git commit -m "Merge of nodereference_views"
+git reset --hard
+
 git remote add -f drupal.org/nodereference_views_select http://git.drupal.org/project/nodereference_views_select.git
+git merge -s ours --no-commit be9d41a3a0eb6639276d57b83fccbf7f2a1d04ea
+git read-tree --prefix=drupal-6.x/sites/all/modules/nodereference_views_select  be9d41a3a0eb6639276d57b83fccbf7f2a1d04ea
+git commit -m "Merge of nodereference_views_select"
+git reset --hard
+
 git remote add -f drupal.org/page_title http://git.drupal.org/project/page_title.git
+git merge -s ours --no-commit c8ba5261dbb3ae6237aa036725fca9ad62842e7f
+git read-tree --prefix=drupal-6.x/sites/all/modules/page_title  c8ba5261dbb3ae6237aa036725fca9ad62842e7f
+git commit -m "Merge of page_title"
+git reset --hard
+
 git remote add -f drupal.org/panels http://git.drupal.org/project/panels.git
+git merge -s ours --no-commit f1064ff1cb4079132ce080ffba43bbba8ea6a324
+git read-tree --prefix=drupal-6.x/sites/all/modules/panels  f1064ff1cb4079132ce080ffba43bbba8ea6a324
+git commit -m "Merge of panels"
+git reset --hard
+
 git remote add -f drupal.org/panels_tabs http://git.drupal.org/project/panels_tabs.git
+git merge -s ours --no-commit f01db87c0355dc5ea5102043c5b73f3aabfad0b6
+git read-tree --prefix=drupal-6.x/sites/all/modules/panels_tabs  f01db87c0355dc5ea5102043c5b73f3aabfad0b6
+git commit -m "Merge of panels_tabs"
+git reset --hard
+
 git remote add -f drupal.org/pathauto http://git.drupal.org/project/pathauto.git
+git merge -s ours --no-commit acf1ccea484056cd54e80039fdc14d3ca9ee3384
+git read-tree --prefix=drupal-6.x/sites/all/modules/pathauto  acf1ccea484056cd54e80039fdc14d3ca9ee3384
+git commit -m "Merge of pathauto"
+git reset --hard
+
 git remote add -f drupal.org/path_redirect http://git.drupal.org/project/path_redirect.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/path_redirect 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of path_redirect"
+git reset --hard
+
 git remote add -f drupal.org/pingback http://git.drupal.org/project/pingback.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/pingback 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of pingback"
+git reset --hard
+
 git remote add -f drupal.org/project http://git.drupal.org/project/project.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/project 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of project"
+git reset --hard
+
 git remote add -f drupal.org/project_issue http://git.drupal.org/project/project_issue.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/project_issue 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of project_issue"
+git reset --hard
+
 git remote add -f drupal.org/recipe http://git.drupal.org/project/recipe.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/recipe 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of recipe"
+git reset --hard
+
 git remote add -f drupal.org/rest_server http://git.drupal.org/project/rest_server.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/rest_server 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of rest_server"
+git reset --hard
+
 git remote add -f drupal.org/robotstxt http://git.drupal.org/project/robotstxt.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/robotstxt 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of robotstxt"
+git reset --hard
+
 git remote add -f drupal.org/search_files http://git.drupal.org/project/search_files.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/search_files 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of search_files"
+git reset --hard
+
 git remote add -f drupal.org/seo_checklist http://git.drupal.org/project/seo_checklist.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/seo_checklist 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of seo_checklist"
+git reset --hard
+
 git remote add -f drupal.org/services http://git.drupal.org/project/services.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/services 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of services"
+git reset --hard
+
 git remote add -f drupal.org/site_verify http://git.drupal.org/project/site_verify.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/site_verify 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of site_verify"
+git reset --hard
+
 git remote add -f drupal.org/tablefield http://git.drupal.org/project/tablefield.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/tablefield 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of tablefield"
+git reset --hard
+
 git remote add -f drupal.org/tabs http://git.drupal.org/project/tabs.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/tabs 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of tabs"
+git reset --hard
+
 git remote add -f drupal.org/taxonomy_manager http://git.drupal.org/project/taxonomy_manager.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/taxonomy_manager 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of taxonomy_manager"
+git reset --hard
+
 git remote add -f drupal.org/textformatter http://git.drupal.org/project/textformatter.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/textformatter 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of textformatter"
+git reset --hard
+
 git remote add -f drupal.org/text_noderef http://git.drupal.org/project/text_noderef.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/text_noderef 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of text_noderef"
+git reset --hard
+
 git remote add -f drupal.org/token http://git.drupal.org/project/token.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/token 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of token"
+git reset --hard
+
 git remote add -f drupal.org/transliteration http://git.drupal.org/project/transliteration.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/transliteration 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of transliteration"
+git reset --hard
+
 git remote add -f drupal.org/units http://git.drupal.org/project/units.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/units 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of units"
+git reset --hard
+
 git remote add -f drupal.org/unitsapi http://git.drupal.org/project/unitsapi.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/unitsapi 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of unitsapi"
+git reset --hard
+
 git remote add -f drupal.org/user_register_notify http://git.drupal.org/project/user_register_notify.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/user_register_notify 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of user_register_notify"
+git reset --hard
+
 git remote add -f drupal.org/viewreference http://git.drupal.org/project/viewreference.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/viewreference 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of viewreference"
+git reset --hard
+
 git remote add -f drupal.org/views http://git.drupal.org/project/views.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/views 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of views"
+git reset --hard
+
 git remote add -f drupal.org/viewsdisplaytabs http://git.drupal.org/project/viewsdisplaytabs.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/viewsdisplaytabs 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of viewsdisplaytabs"
+git reset --hard
+
 git remote add -f drupal.org/views_rss http://git.drupal.org/project/views_rss.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/views_rss 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of views_rss"
+git reset --hard
+
 git remote add -f drupal.org/webform http://git.drupal.org/project/webform.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/webform 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of webform"
+git reset --hard
+
 git remote add -f drupal.org/xmlsitemap http://git.drupal.org/project/xmlsitemap.git
+git merge -s ours --no-commit 66a3c6505d91249ea07254c35d4dd48796119fd2
+git read-tree --prefix=drupal-6.x/sites/all/modules/xmlsitemap 66a3c6505d91249ea07254c35d4dd48796119fd2
+git commit -m "Merge of xmlsitemap"
+git reset --hard
+
