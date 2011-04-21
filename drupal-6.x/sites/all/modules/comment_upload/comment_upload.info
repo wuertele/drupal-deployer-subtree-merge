@@ -1,0 +1,5 @@
+; $Id$
+name = "Comment upload"
+description = "Enables file attachments on comments"
+dependencies[] = upload
+core = 6.x
