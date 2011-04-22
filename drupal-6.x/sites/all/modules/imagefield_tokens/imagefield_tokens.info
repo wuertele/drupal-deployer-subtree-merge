@@ -1,0 +1,7 @@
+; $Id$
+name = ImageField Tokens
+description = Adds Node tokens to ImageFields ALT and Title text fields.
+dependencies[] = imagefield
+dependencies[] = filefield_paths
+package = CCK
+core = 6.x
