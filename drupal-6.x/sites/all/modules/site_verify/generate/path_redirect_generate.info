@@ -1,0 +1,8 @@
+; $Id$
+name = Path redirect generate
+description = Bulk create redirects for testing.
+package = Development
+core = 6.x
+dependencies[] = path_redirect
+dependencies[] = devel_generate
+tags[] = developer
