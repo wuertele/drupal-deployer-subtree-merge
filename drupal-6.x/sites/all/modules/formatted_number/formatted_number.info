@@ -1,0 +1,7 @@
+; $Id$
+name = Formatted Number CCK
+description = Defines CCK numeric types where thousands separator and decimal point are inherited from the Format Number API module.
+package = CCK
+dependencies[] = content
+dependencies[] = format_number
+core = 6.x
