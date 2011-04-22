@@ -1,0 +1,11 @@
+/* $Id$ */
+
+/* Checkboxes for unit selection. */
+.mvf-unit-checkboxes .form-checkboxes .form-item {
+  display: block;
+  float: left;
+  width: 300px;
+}
+.mvf-unit-checkboxes .description {
+  clear: both;
+}

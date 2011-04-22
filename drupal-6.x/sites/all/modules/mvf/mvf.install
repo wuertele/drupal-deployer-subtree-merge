@@ -1,0 +1,80 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Module installation/uninstallation hooks.
+ */
+
+/**
+ * Implementation of hook_requirements().
+ */
+function mvf_requirements($phase) {
+  if ($phase == 'install') {
+    $requirements = array();
+    $t = get_t();
+    drupal_load('module', 'format_number');
+    if (!function_exists('format_number_get_options')) {
+      $requirements['format_number'] = array(
+        'title' => $t('Format Number API'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('%module-name requires, at least, version 6.x-1.1 of the <a href="@format-number">Format Number API</a> module.', array(
+          '%module-name' => $t('Measured Value Field'),
+          '@format-number' => 'http://drupal.org/project/format_number',
+        )),
+      );
+    }
+    drupal_load('module', 'formatted_number');
+    if (!function_exists('formatted_number_widget_validate')) {
+      $requirements['formatted_number'] = array(
+        'title' => $t('Formatted Number CCK'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => $t('%module-name requires, at least, version 6.x-1.0 of the <a href="@formatted-number">Formatted Number CCK</a> module.', array(
+          '%module-name' => $t('Measured Value Field'),
+          '@formatted-number' => 'http://drupal.org/project/formatted_number',
+        )),
+      );
+    }
+    return $requirements;
+  }
+}
+
+/**
+ * Implementation of hook_install().
+ *
+ * Notify content module when this module is installed.
+ */
+function mvf_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'mvf');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ *
+ * Notify content module when this module is uninstalled.
+ */
+function mvf_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'mvf');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function mvf_enable() {
+  drupal_load('module', 'content');
+  content_notify('enable', 'mvf');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function mvf_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'mvf');
+}
