@@ -1,0 +1,5 @@
+; $Id$
+name = Image
+description = Allows uploading, resizing and viewing of images.
+package = Image
+core = 6.x
