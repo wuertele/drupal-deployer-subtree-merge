@@ -1,0 +1,6 @@
+; $Id$
+name = Node Export Files
+description = "Export helper module for handling files (CCK FileField, Upload, and Image)."
+dependencies[] = node_export
+version = VERSION
+core = 6.x
