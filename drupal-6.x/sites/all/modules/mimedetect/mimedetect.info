@@ -1,0 +1,4 @@
+; $Id$
+name = MimeDetect
+description = Provides common mime type detection for Drupal sites.
+core = 6.x
