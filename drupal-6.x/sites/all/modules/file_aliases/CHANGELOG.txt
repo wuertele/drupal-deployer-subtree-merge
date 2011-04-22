@@ -1,0 +1,26 @@
+// $Id$
+
+File Aliases 6.x-1.1, 2010-01-11
+--------------------------------
+
+- #677532: Added check to stop duplicate File Aliases being created.
+- #666788: Fixed issue with File Alias not being displayed in some Views.
+- Added ability to convert file references in Node Body and CCK Text fields to File Alias.
+
+
+File Aliases 6.x-1.0, 2009-10-29
+--------------------------------
+
+- #597638: Added support for larger Alias.
+- #540252: Added support for Retroactive and Active Updating.
+- #411910 by tanc: Fixed PDF issue in IE.
+- Added Views integration.
+- Added support for the Image module.
+- Added support for the Comment Upload module.
+- Added support for the ImageField module.
+- Added support for Private file systems.
+- Changed request_uri() check.
+- Improved support for Private file systems.
+- Fixed issue with FileField module support.
+- Initial 6.x release.
+

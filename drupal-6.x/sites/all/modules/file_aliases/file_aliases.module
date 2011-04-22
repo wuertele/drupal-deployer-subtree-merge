@@ -1,0 +1,198 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Contains core functions for the File Aliases module.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function file_aliases_menu() {
+  $items['filefield_paths/alias/%'] = array(
+    'page callback' => 'file_aliases_load_fid',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function file_aliases_init() {
+  foreach (module_list() as $module) {
+    if (file_exists($file = drupal_get_path('module', 'file_aliases') . '/modules/' . $module . '.inc')) {
+      require_once $file;
+    }
+  }
+}
+
+/**
+ * Implements hook_filefield_paths_field_settings().
+ */
+function file_aliases_filefield_paths_field_settings() {
+  return array(
+    'file_alias' => array(
+      'title' => 'File alias',
+      'sql' => 'filealias',
+
+      'data' => array('display' => 'file_alias_display'),
+
+      'form' => array(
+        'file_alias' => array(
+          '#type' => 'textfield',
+          '#title' => t('File alias'),
+          '#default_value' => ((variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC) ? file_directory_path() : 'system/files') . '/[filefield-onlyname-original].[filefield-extension-original]',
+          '#maxlength' => 512,
+          '#size' => 128,
+        ),
+
+        'file_alias_display' => array(
+          '#type' => 'checkbox',
+          '#title' => t('Display alias'),
+          '#description' => t('If checked, the file alias will be displayed instead of the file') . '.',
+          '#default_value' => 0,
+          '#weight' => 3
+        ),
+      ),
+    )
+  );
+}
+
+/**
+ * Implements hook_filefield_paths_process_file().
+ */
+function file_aliases_filefield_paths_process_file($new, $file, $settings, $node, $update) {
+  if ($new) {
+    $file['filealias'] = filefield_paths_process_string($settings['filealias']['value'], 'node', $node, $settings['filealias']);
+    $file['filealias'] = filefield_paths_process_string($file['filealias'], 'field', array(0 => $file['field']), $settings['filealias']);
+
+    $path = 'filefield_paths/alias/' . $file['field']['fid'];
+    $alias = drupal_get_path_alias($path);
+
+    // Path already has an alias.
+    if ($alias != $path) {
+      path_set_alias(NULL, $alias);
+    }
+
+    // Rename alias if already in use.
+    if (drupal_lookup_path('source', $file['filealias']) != NULL) {
+      $info = pathinfo($file['filealias']);
+      // PHP < 5.2: pathinfo() doesn't return 'filename' variable.
+      $info['filename'] = isset($info['filename'])
+        ? $info['filename']
+        : basename($file['filealias'], '.' . $info['extension']);
+      $counter = 0;
+      do {
+        $file['filealias'] = $info['dirname'] . '/' . $info['filename'] . '_' . $counter++ . '.' . $info['extension'];
+      } while (drupal_lookup_path('source', $file['filealias']) != NULL);
+    }
+
+    // Create Alias.
+    path_set_alias('filefield_paths/alias/' . $file['field']['fid'], $file['filealias']);
+
+    // Display Alias in Node Body and CCK Text fields.
+    if ($settings['filealias']['display']) {
+      // Regular expression to replace file reference with file alias.
+      $pattern = array(
+        'regex' => str_replace('/', '\/', $file['filepath']['new']),
+        'regex_enc' => str_replace('/', '\/', drupal_urlencode($file['filepath']['new'])),
+        'replace' => $file['filealias']
+      );
+  
+      // Process regular expression.
+      _filefield_paths_replace_pattern($pattern, $node, $update);
+    }
+  }
+}
+
+/**
+ * Implements hook_nodeapi().
+ */
+function file_aliases_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  switch ($op) {
+    case 'view':
+      if (($ffp = filefield_paths_get_fields($node, $op)) == FALSE) {
+        break;
+      }
+
+      $count = array();
+      foreach ($ffp['#files'] as &$file) {
+        if ($ffp['#settings'][$file['name']]['filealias']['display'] == TRUE) {
+          $filefield_paths_alias = 'filefield_paths/alias/' . $file['field']['fid'];
+          if (($alias = drupal_get_path_alias($filefield_paths_alias)) != $filefield_paths_alias) {
+            // Calculate relative path.
+            $path = (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC) ? '' : '../../';
+            if (empty($path)) {
+              foreach (explode('/', file_directory_path()) as $dir) {
+                $path .= '../';
+              }
+            }
+
+            // Invoke file_aliases_hook_process().
+            if (function_exists($function = 'file_aliases_' . $file['module'] . '_process')) {
+              $function($node, $file, $path, $alias, $count);
+            }
+
+          }
+        }
+      }
+      break;
+
+  }
+}
+
+function file_aliases_load_fid($fid) {
+  if (request_uri() == base_path() . 'filefield_paths/alias/' . $fid) {
+    drupal_not_found();
+    exit;
+  }
+
+  $result = db_fetch_object(db_query("SELECT filemime, filepath FROM {files} WHERE fid = %d", $fid));
+
+  if (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PRIVATE) {
+    file_download($result->filepath);
+  }
+  else {
+    header('Content-Type: ' . $result->filemime);
+    // Fix for IE/PDF download issue
+    // @see http://drupal.org/node/411910
+    header('Cache-Control: public');
+    readfile($result->filepath);
+  }
+}
+
+function file_aliases_file_download($filepath) {
+  $fileinfo = pathinfo(drupal_get_path_alias($_GET['q']));
+  return array(
+    'Cache-Control: public',
+    'Content-Disposition: attachment; filename="' . $fileinfo['basename'] . '"'
+  );
+}
+
+function _file_aliases_display_alias($type, $field, $refresh = FALSE) {
+  static $display = array();
+
+  if (empty($display[$type][$field])) {
+    $result = db_fetch_object(db_query(
+      "SELECT filealias FROM {filefield_paths} WHERE type = '%s' AND field = '%s'", $type, $field
+    ));
+    $data = unserialize($result->filealias);
+    $display[$type][$field] = $data['display'];
+  }
+  return $display[$type][$field];
+}
+
+/**
+ * Implements hook_views_api.
+ * Notifies the Views module that we're compatible with a particular API revision.
+ */
+function file_aliases_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'file_aliases') . '/includes',
+  );
+}
