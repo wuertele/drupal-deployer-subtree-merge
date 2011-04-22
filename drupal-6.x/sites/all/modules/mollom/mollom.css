@@ -1,0 +1,11 @@
+/* $Id$ */
+
+#edit-mollom-captcha {
+  display: block;
+}
+
+/* Help themes to properly display Mollom's log messages. */
+.dblog-event pre,
+#simpletest-result-form table td {
+  white-space: pre-wrap;
+}
