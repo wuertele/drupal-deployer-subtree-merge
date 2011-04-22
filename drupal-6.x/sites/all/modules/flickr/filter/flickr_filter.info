@@ -1,0 +1,6 @@
+; $Id$
+name = Flickr Filter
+description = Flickr Filter for inserting photos into content.
+dependencies[] = flickr
+package = Flickr
+core = 6.x

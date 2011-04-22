@@ -1,0 +1,6 @@
+; $Id$
+name = Flickr Sets
+description = Add photoset capability to Flickr module
+dependencies[] = flickr
+package = Flickr
+core = 6.x

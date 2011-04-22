@@ -1,0 +1,5 @@
+; $Id$
+name = Flickr
+description = Flickr and Drupal integration.
+package = Flickr
+core = 6.x
