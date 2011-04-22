@@ -1,0 +1,4 @@
+; $Id$
+name = Format Number API
+description = This module provides a method to configure number formats (site default and user defined) with configurable decimal point and thousand separators. It also exposes several functions that can be used by other contributed or custom modules to display numbers accordingly.
+core = 6.x
