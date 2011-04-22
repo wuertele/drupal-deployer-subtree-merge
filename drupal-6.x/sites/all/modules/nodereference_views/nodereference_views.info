@@ -1,0 +1,7 @@
+; $Id$
+name = Node reference views
+description = Shows nodereference fields using a view.
+dependencies[] = nodereference
+dependencies[] = views
+package = CCK
+core = 6.x
