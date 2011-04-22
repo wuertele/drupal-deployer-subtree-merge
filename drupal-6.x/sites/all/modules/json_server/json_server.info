@@ -1,0 +1,6 @@
+; $Id$
+name = "JSON server"
+description = "Provides a Services API Server that returns JSON."
+package = "Services - servers"
+dependencies[] = services
+core = 6.x
