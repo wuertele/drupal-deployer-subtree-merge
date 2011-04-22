@@ -1,0 +1,10 @@
+// $Id$
+
+6--1.0-rc1
+=========
+- Initial 6.x release
+
+5--1.0-beta
+===========
+
+- initial 5.x release
